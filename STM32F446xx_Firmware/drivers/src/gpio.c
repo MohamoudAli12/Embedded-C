@@ -1,6 +1,5 @@
-
 #include "gpio.h"
-#include <stdio.h>
+
 
 
 void gpio_peripheral_clk_cntrl(gpio_register_def_t * p_gpio_x, gpio_pin_state_t enable_or_disable)
