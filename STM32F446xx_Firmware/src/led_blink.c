@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include "stm32f446xx.h"
 #include "gpio.h"
+#include "fn_prototypes.h"
 
 void blink_led(void) 
 {

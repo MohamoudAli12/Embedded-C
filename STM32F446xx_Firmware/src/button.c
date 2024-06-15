@@ -1,8 +1,16 @@
 #include <stdint.h>
 #include "stm32f446xx.h"
 #include "gpio.h"
+#include "fn_prototypes.h"
 
-#define BUTTON_PRESSED                      0
+
+
+_Bool debounce(void) {
+    static uint16_t state = 0;
+    state = ((state << 1) | (gpio_read_from_input_pin(GPIOC, GPIO_PIN_13)) | (0xfe00));
+    return (state == 0xff00 );
+}
+
 
 void toggle_led_on_button_press(void)
 {
@@ -18,11 +26,11 @@ void toggle_led_on_button_press(void)
     
     
 
-    while(1)
+ while(1)
     {
-        if(gpio_read_from_input_pin(GPIOC,GPIO_PIN_13)==BUTTON_PRESSED)
+        if(debounce())
         {
-            delay(300000);
+            
             gpio_toggle_output_pin(GPIOA,GPIO_PIN_5);
         }
     }
