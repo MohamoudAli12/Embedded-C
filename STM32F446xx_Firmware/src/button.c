@@ -5,9 +5,10 @@
 
 
 
-_Bool debounce(void) {
+_Bool debounce_active_low(void) 
+{
     static uint16_t state = 0;
-    state = ((state << 1) | (gpio_read_from_input_pin(GPIOC, GPIO_PIN_13)) | (0xfe00));
+    state = ((state << 1) |(gpio_read_from_input_pin(GPIOC, GPIO_PIN_13))| (0xfe00));
     return (state == 0xff00 );
 }
 
@@ -28,7 +29,7 @@ void toggle_led_on_button_press(void)
 
  while(1)
     {
-        if(debounce())
+        if(debounce_active_low())
         {
             
             gpio_toggle_output_pin(GPIOA,GPIO_PIN_5);

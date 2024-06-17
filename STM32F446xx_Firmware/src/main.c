@@ -4,7 +4,7 @@
 #include "fn_prototypes.h"
 
 
-void main() 
+int main() 
 {
     //button_interrupt_led_toggle();
     toggle_led_on_button_press();
