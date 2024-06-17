@@ -35,13 +35,17 @@
 
 #define NVIC_IPR_BITS_IMPLEMENTED                         (0x04)// The processor implements only bits[7:4] for interrupts
 
-
+/***********************************************************************************************/
+/***********************************************************************************************/
 
 
 #define ENABLE                                                            1
 #define DISABLE                                                           0
 #define SET                                                               ENABLE
 #define RESET                                                             DISABLE
+
+/***********************************************************************************************/
+/***********************************************************************************************/
 
 
 // Flash and SRAM Base address
@@ -61,52 +65,9 @@
 #define AHB2_BASE_ADDR                         0x50000000U
 #define AHB3_BASE_ADDR                         0x60000000U
 
+/***********************************************************************************************/
+/***********************************************************************************************/
 
-// GPIO Base Addresses
-
-#define GPIOA_BASE_ADDR                       ((AHB1_BASE_ADDR) + (0x0000U))
-#define GPIOB_BASE_ADDR                       ((AHB1_BASE_ADDR) + (0x0400U))
-#define GPIOC_BASE_ADDR                       ((AHB1_BASE_ADDR) + (0x0800U))
-#define GPIOD_BASE_ADDR                       ((AHB1_BASE_ADDR) + (0x0C00U))
-#define GPIOE_BASE_ADDR                       ((AHB1_BASE_ADDR) + (0x1000U))
-#define GPIOF_BASE_ADDR                       ((AHB1_BASE_ADDR) + (0x1400U))
-#define GPIOG_BASE_ADDR                       ((AHB1_BASE_ADDR) + (0x1800U))
-#define GPIOH_BASE_ADDR                       ((AHB1_BASE_ADDR) + (0x1C00U))
-
-//GPIO Register definitions
-
-typedef struct 
-{
-    volatile uint32_t MODER;   /*!< GPIO port mode register */
-    volatile uint32_t OTYPER;  /*!< GPIO port output type register */
-    volatile uint32_t OSPEEDR; /*!< GPIO port output speed register */
-    volatile uint32_t PUPDR;   /*!< GPIO port pull-up/pull-down register */
-    volatile uint32_t IDR;     /*!< GPIO port input data register */
-    volatile uint32_t ODR;     /*!< GPIO port output data register */
-    volatile uint32_t BSRR;    /*!< GPIO port bit set/reset register */
-    volatile uint32_t LCKR;    /*!< GPIO port configuration lock register */
-    volatile uint32_t AFRL;    /*!< GPIO alternate function low register */
-    volatile uint32_t AFRH;    /*!< GPIO alternate function high register */
-} gpio_register_def_t;
-
-#define GPIOA                                 ((gpio_register_def_t * )GPIOA_BASE_ADDR)
-#define GPIOB                                 ((gpio_register_def_t * )GPIOB_BASE_ADDR)
-#define GPIOC                                 ((gpio_register_def_t * )GPIOC_BASE_ADDR)
-#define GPIOD                                 ((gpio_register_def_t * )GPIOD_BASE_ADDR)
-#define GPIOE                                 ((gpio_register_def_t * )GPIOE_BASE_ADDR)
-#define GPIOF                                 ((gpio_register_def_t * )GPIOF_BASE_ADDR)
-#define GPIOG                                 ((gpio_register_def_t * )GPIOG_BASE_ADDR)
-#define GPIOH                                 ((gpio_register_def_t * )GPIOH_BASE_ADDR)
-
-
-#define IS_GPIO_PORT(GPIO_PORT)               ((GPIO_PORT) == (GPIOA) || \
-                                               (GPIO_PORT) == (GPIOB) || \
-                                               (GPIO_PORT) == (GPIOC) || \
-                                               (GPIO_PORT) == (GPIOD) || \
-                                               (GPIO_PORT) == (GPIOE) || \
-                                               (GPIO_PORT) == (GPIOF) || \
-                                               (GPIO_PORT) == (GPIOG) || \
-                                               (GPIO_PORT) == (GPIOH))
 
 // RCC Base address definition
 
@@ -156,6 +117,57 @@ typedef struct
 
 #define RCC                                 ((rcc_register_def_t * )RCC_BASE_ADDR)
 
+/***********************************************************************************************/
+/***********************************************************************************************/
+
+// GPIO Base Addresses
+
+#define GPIOA_BASE_ADDR                       ((AHB1_BASE_ADDR) + (0x0000U))
+#define GPIOB_BASE_ADDR                       ((AHB1_BASE_ADDR) + (0x0400U))
+#define GPIOC_BASE_ADDR                       ((AHB1_BASE_ADDR) + (0x0800U))
+#define GPIOD_BASE_ADDR                       ((AHB1_BASE_ADDR) + (0x0C00U))
+#define GPIOE_BASE_ADDR                       ((AHB1_BASE_ADDR) + (0x1000U))
+#define GPIOF_BASE_ADDR                       ((AHB1_BASE_ADDR) + (0x1400U))
+#define GPIOG_BASE_ADDR                       ((AHB1_BASE_ADDR) + (0x1800U))
+#define GPIOH_BASE_ADDR                       ((AHB1_BASE_ADDR) + (0x1C00U))
+
+//GPIO Register definitions
+
+typedef struct 
+{
+    volatile uint32_t MODER;   /*!< GPIO port mode register */
+    volatile uint32_t OTYPER;  /*!< GPIO port output type register */
+    volatile uint32_t OSPEEDR; /*!< GPIO port output speed register */
+    volatile uint32_t PUPDR;   /*!< GPIO port pull-up/pull-down register */
+    volatile uint32_t IDR;     /*!< GPIO port input data register */
+    volatile uint32_t ODR;     /*!< GPIO port output data register */
+    volatile uint32_t BSRR;    /*!< GPIO port bit set/reset register */
+    volatile uint32_t LCKR;    /*!< GPIO port configuration lock register */
+    volatile uint32_t AFRL;    /*!< GPIO alternate function low register */
+    volatile uint32_t AFRH;    /*!< GPIO alternate function high register */
+} gpio_register_def_t;
+
+#define GPIOA                                 ((gpio_register_def_t * )GPIOA_BASE_ADDR)
+#define GPIOB                                 ((gpio_register_def_t * )GPIOB_BASE_ADDR)
+#define GPIOC                                 ((gpio_register_def_t * )GPIOC_BASE_ADDR)
+#define GPIOD                                 ((gpio_register_def_t * )GPIOD_BASE_ADDR)
+#define GPIOE                                 ((gpio_register_def_t * )GPIOE_BASE_ADDR)
+#define GPIOF                                 ((gpio_register_def_t * )GPIOF_BASE_ADDR)
+#define GPIOG                                 ((gpio_register_def_t * )GPIOG_BASE_ADDR)
+#define GPIOH                                 ((gpio_register_def_t * )GPIOH_BASE_ADDR)
+
+
+#define IS_GPIO_PORT(GPIO_PORT)               ((GPIO_PORT) == (GPIOA) || \
+                                               (GPIO_PORT) == (GPIOB) || \
+                                               (GPIO_PORT) == (GPIOC) || \
+                                               (GPIO_PORT) == (GPIOD) || \
+                                               (GPIO_PORT) == (GPIOE) || \
+                                               (GPIO_PORT) == (GPIOF) || \
+                                               (GPIO_PORT) == (GPIOG) || \
+                                               (GPIO_PORT) == (GPIOH))
+
+
+
 //GPIO clock enable macros
 
 #define GPIOA_PCLK_EN()                        ((RCC->RCC_AHB1ENR)  |= (1<<0))
@@ -189,10 +201,12 @@ typedef struct
 #define GPIOG_RESET()                          do{ ((RCC->RCC_AHB1RSTR)  |= (1<<6)); ((RCC->RCC_AHB1RSTR)  &= ~(1<<6));} while (0)
 #define GPIOH_RESET()                          do{ ((RCC->RCC_AHB1RSTR)  |= (1<<7)); ((RCC->RCC_AHB1RSTR)  &= ~(1<<7));} while (0)
 
+/***********************************************************************************************/
+/***********************************************************************************************/
 
 // EXTI base address definition
 
-#define EXTI_BASE_ADDR                        ((APB2_BASE_ADDR) + (0x3C00))
+#define EXTI_BASE_ADDR                        ((APB2_BASE_ADDR) + (0x3C00U))
 
 //EXTI Register definitions
 
@@ -209,9 +223,12 @@ typedef struct
 
 #define EXTI                                  ((exti_register_def_t * )EXTI_BASE_ADDR)
 
+/***********************************************************************************************/
+/***********************************************************************************************/
+
 // SYSCFG base address definition
 
-#define SYSCFG_BASE_ADDR                      ((APB2_BASE_ADDR) + (0x3800))
+#define SYSCFG_BASE_ADDR                      ((APB2_BASE_ADDR) + (0x3800U))
 //SYSCFG Register definitions
 typedef struct
 {
@@ -232,6 +249,53 @@ typedef struct
 // clock enable for SYSCFG
 
 #define SYSCFG_PCLK_EN()                        ((RCC->RCC_APB2ENR)  |= (1<<14))
+#define SYSCFG_PCLK_DI()                        ((RCC->RCC_APB2ENR)  &= ~(1<<14))
+
+/***********************************************************************************************/
+/***********************************************************************************************/
+
+// SPI Base Address definition
+
+#define SPI1_BASE_ADDR                                    ((APB2_BASE_ADDR)+(0x3000U))
+#define SPI2_BASE_ADDR                                    ((APB1_BASE_ADDR)+(0x3800U)) 
+#define SPI3_BASE_ADDR                                    ((APB1_BASE_ADDR)+(0x3C00U)) 
+#define SPI4_BASE_ADDR                                    ((APB2_BASE_ADDR)+(0x3400U))
+
+// SPI register definitions
+typedef struct 
+{
+    volatile uint32_t SPI_CR1;
+    volatile uint32_t SPI_CR2;
+    volatile uint32_t SPI_SR;
+    volatile uint32_t SPI_DR;
+    volatile uint32_t SPI_CRCPR;
+    volatile uint32_t SPI_RXCRCR;
+    volatile uint32_t SPI_TXCRCR;
+    volatile uint32_t SPI_I2SCFGR;
+    volatile uint32_t SPI_I2SPR;
+}spi_register_def_t;
+
+#define SPI1                                                ((spi_register_def_t *)SPI1_BASE_ADDR)
+#define SPI2                                                ((spi_register_def_t *)SPI2_BASE_ADDR)
+#define SPI3                                                ((spi_register_def_t *)SPI3_BASE_ADDR)
+#define SPI4                                                ((spi_register_def_t *)SPI4_BASE_ADDR)
+
+// spi peripheral clock enable 
+
+#define SPI1_PCLK_EN()                                      ((RCC->RCC_APB2ENR)  |= (1<<12))
+#define SPI2_PCLK_EN()                                      ((RCC->RCC_APB1ENR)  |= (1<<14))
+#define SPI3_PCLK_EN()                                      ((RCC->RCC_APB1ENR)  |= (1<<15))
+#define SPI4_PCLK_EN()                                      ((RCC->RCC_APB2ENR)  |= (1<<13))
+
+//SPI peripheral clock disable
+
+#define SPI1_PCLK_DI()                                      ((RCC->RCC_APB2ENR)  &= ~(1<<12))
+#define SPI2_PCLK_DI()                                      ((RCC->RCC_APB1ENR)  &= ~(1<<14))
+#define SPI3_PCLK_DI()                                      ((RCC->RCC_APB1ENR)  &= ~(1<<15))
+#define SPI4_PCLK_DI()                                      ((RCC->RCC_APB2ENR)  &= ~(1<<13))
+
+/***********************************************************************************************/
+/***********************************************************************************************/
 
 
 
