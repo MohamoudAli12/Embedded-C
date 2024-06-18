@@ -93,8 +93,8 @@ typedef enum
 
 typedef enum 
 {
-    GPIO_PIN_RESET,
-    GPIO_PIN_SET      
+    GPIO_PIN_RESET = RESET,
+    GPIO_PIN_SET = SET      
 } gpio_pin_state_t;
 
 
