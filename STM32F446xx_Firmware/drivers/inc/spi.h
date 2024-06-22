@@ -22,14 +22,14 @@ typedef enum
     SPI_MODE_MASTER
 } spi_config_master_slave_t;
 
+
 typedef enum
 {
-    SPI_FULL_DUPLEX,
-    SPI_HALF_DUPLEX,
-    SPI_SIMPLEX_TXONLY,
+    SPI_TWO_LINE_MODE,
+    SPI_ONE_LINE_MODE_TX_ONLY,
+    SPI_ONE_LINE_MODE_RX_ONLY,
     SPI_SIMPLEX_RXONLY
-}spi_config_comms_mode_t;
-
+}spi_config_line_mode_t;
 
 typedef enum
 {
@@ -56,7 +56,6 @@ typedef enum
 {
     SPI_HW_SLAVE_MANAGE,
     SPI_SW_SLAVE_MANAGE
-
 }spi_config_slave_manage_t;
 
 typedef enum 
@@ -66,17 +65,15 @@ typedef enum
 } spi_pin_state_t;
 
 void config_spi_speed(spi_register_def_t *p_spi_x,spi_clk_speed_t clk_speed);
-void spi_peripheral_clk_cntrl(spi_register_def_t *p_spi_x, spi_pin_state_t enable_or_disable);
-void config_spi_baud_rate();
-
 
 void config_spi_as_master_or_slave(spi_register_def_t *p_spi_x, spi_config_master_slave_t master_or_slave);
 
-void config_spi_comm_mode(spi_register_def_t *p_spi_x, spi_config_comms_mode_t comm_mode);
+void config_spi_line_mode(spi_register_def_t *p_spi_x, spi_config_line_mode_t line_mode);
 
 void config_spi_data_length(spi_register_def_t *p_spi_x, spi_config_data_length_t data_length);
 
 void config_spi_cpha(spi_register_def_t *p_spi_x,spi_config_cpha_t cpha);
+
 void config_spi_cpol(spi_register_def_t *p_spi_x,spi_config_cpol_t cpol);
 
 
