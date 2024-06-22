@@ -98,24 +98,6 @@ typedef enum
 } gpio_pin_state_t;
 
 
-/*********************************************************************
- * @fn      		  - gpio_peripheral_clk_cntrl
- *
- * @brief             - This function enables or disables peripheral clock for the given GPIO port
- *
- * @param[in]         - GPIOx port where x is is the GPIO port i.e. GPIOA 
- * @param[in]         - ENABLE or DISABLE Clock for the GPIO port
- * @param[in]         -
- *
- * @return            -  none
- *
- * @Note              -  none
-
- */
-
-
-void gpio_peripheral_clk_cntrl(gpio_register_def_t *p_gpio_x, gpio_pin_state_t enable_or_disable);  // enable or disable pclk of given gpio pin
-
 
 
 /*********************************************************************

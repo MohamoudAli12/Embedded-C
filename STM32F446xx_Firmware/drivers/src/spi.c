@@ -64,3 +64,8 @@ void config_spi_line_mode(spi_register_def_t *p_spi_x, spi_config_line_mode_t li
     }    
 
 }
+void config_spi_slave_management(spi_register_def_t *p_spi_x,spi_config_slave_manage_t slave_management)
+{
+    p_spi_x->SPI_CR1 &= ~(0x01 << SPI_CR1_SSM);
+    p_spi_x->SPI_CR1 |= (slave_management << SPI_CR1_SSM);
+}

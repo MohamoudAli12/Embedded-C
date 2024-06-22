@@ -16,13 +16,14 @@ _Bool debounce_active_low(void)
 void toggle_led_on_button_press(void)
 {
     //configure Led pin
-    gpio_peripheral_clk_cntrl(GPIOA, ENABLE);
+    GPIOA_PCLK_EN();
     gpio_output_mode_config(GPIOA, GPIO_PIN_5, GPIO_SPEED_FAST, GPIO_OTYPE_PUSH_PULL);
     gpio_pull_type_config(GPIOA, GPIO_PIN_5, GPIO_NO_PULL_UP_DOWN);
 
     //configure button
 
-    gpio_peripheral_clk_cntrl(GPIOC, ENABLE);
+    
+    GPIOC_PCLK_EN();
     gpio_input_mode_cofig(GPIOC,GPIO_PIN_13);
     
     
