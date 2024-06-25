@@ -7,8 +7,8 @@
 int main() 
 {
     //button_interrupt_led_toggle();
-    toggle_led_on_button_press();
-   
+    //toggle_led_on_button_press();
+   blink_led();
 
 
 }

@@ -73,7 +73,7 @@ $(OBJ_DIR)/%.o: $(STARTUP_DIR)/%.c
 flash:
 	openocd -f openocd.cfg -c "program $(HEX) verify reset exit"
 
-.PHONY: all clean flash
-
 clean:
 	@rm -rf $(OBJ_DIR) $(BINDIR)
+
+.PHONY: all clean flash

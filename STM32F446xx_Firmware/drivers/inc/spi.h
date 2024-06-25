@@ -78,5 +78,7 @@ void config_spi_cpol(spi_register_def_t *p_spi_x,spi_config_cpol_t cpol);
 
 void config_spi_slave_management(spi_register_def_t *p_spi_x,spi_config_slave_manage_t slave_management);
 
+
+
 #endif /* SPI_H */
 /*** end of file ***/

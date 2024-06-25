@@ -1,9 +1,6 @@
 #include "gpio.h"
 
 
-
-
-
 void gpio_input_mode_cofig(gpio_register_def_t * p_gpio_x, gpio_pin_num_t pin_number)
 {
 
@@ -21,10 +18,11 @@ void gpio_analog_mode_cofig(gpio_register_def_t * p_gpio_x, gpio_pin_num_t pin_n
 }
 
 
-
 void gpio_output_mode_config(gpio_register_def_t * p_gpio_x, gpio_pin_num_t pin_number, 
                              gpio_speed_config_t output_speed, gpio_output_type_config_t output_type)
 {
+    
+    
     // first clear the bits and then set the pin to output
     p_gpio_x->MODER &= ~((0x03) << ((2) * (pin_number))); 
     p_gpio_x->MODER |= ((GPIO_MODE_OUTPUT) << ((2) * (pin_number)));

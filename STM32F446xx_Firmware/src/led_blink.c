@@ -3,8 +3,10 @@
 #include "gpio.h"
 #include "fn_prototypes.h"
 
+#define PUSHPULL 7
 void blink_led(void) 
 {
+
     GPIOA_PCLK_EN();
     gpio_output_mode_config(GPIOA, GPIO_PIN_5, GPIO_SPEED_LOW, GPIO_OTYPE_PUSH_PULL);
     gpio_pull_type_config(GPIOA, GPIO_PIN_5, GPIO_NO_PULL_UP_DOWN);

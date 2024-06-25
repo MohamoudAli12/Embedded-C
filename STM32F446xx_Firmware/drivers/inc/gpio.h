@@ -351,10 +351,10 @@ void gpio_toggle_output_pin(gpio_register_def_t *p_gpio_x, uint8_t pin_number);
 
 #define IS_GPIO_PIN_ACTION(ACTION)            (((ACTION)==(GPIO_PIN_SET)) || ((ACTION) ==(GPIO_PIN_RESET)))
 
-#define IS_GPIO_PIN_MODE(MODE)                (((MODE) == (GPIO_MODE_INPUT))      || ((MODE) == (GPIO_MODE_OUTPUT))       || \
+#define IS_GPIO_PIN_MODE(MODE)                ((MODE) == (GPIO_MODE_INPUT))      || ((MODE) == (GPIO_MODE_OUTPUT))       || \
                                                ((MODE) == (GPIO_MODE_ANALOG))     || ((MODE) == (GPIO_MODE_ALT_FUNC))     || \
-                                               ((MODE) == (GPIO_MODE_INTRPT_FALL))|| ((MODE) == (GPIO_MODE_INTRPT_RISING))|| \
-                                               ((MODE) == (GPIO_MODE_INTRPT_FALL_RISING)))
+                                               ((MODE) == (GPIO_INTRPT_EDGE_FALL)|| ((MODE) == (GPIO_INTRPT_EDGE_FALL_RISING))|| \
+                                               ((MODE) == (GPIO_INTRPT_EDGE_RISING)))
 
 #define IS_GPIO_PIN_NUMBER(PIN_NUMBER)        (((PIN_NUMBER) == (GPIO_PIN_0))  || ((PIN_NUMBER) == (GPIO_PIN_1))  || \
                                                ((PIN_NUMBER) == (GPIO_PIN_2))  || ((PIN_NUMBER) == (GPIO_PIN_3))  || \
