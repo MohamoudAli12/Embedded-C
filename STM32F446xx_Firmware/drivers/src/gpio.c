@@ -247,7 +247,7 @@ void gpio_de_init(gpio_register_def_t * p_gpio_x)
 
 uint8_t gpio_read_from_input_pin(gpio_register_def_t *p_gpio_x, uint8_t pin_number)
 {
-    static uint8_t pin_value_read =0;
+    uint8_t pin_value_read =0;
 
     pin_value_read = (uint8_t) (p_gpio_x->IDR >> pin_number) & (0x01);
 

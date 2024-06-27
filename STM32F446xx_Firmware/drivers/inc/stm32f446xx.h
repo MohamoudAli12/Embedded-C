@@ -314,7 +314,17 @@ typedef struct
 #define SPI_CR1_BIDIOE                                      14 
 #define SPI_CR1_BIDIMODE                                    15
 
+// SPI status register bit fields
 
+#define SPI_SR_RXNE                                         0
+#define SPI_SR_TXE                                          1
+#define SPI_SR_CHSIDE                                       2
+#define SPI_SR_UDR                                          3
+#define SPI_SR_CRCERR                                       4
+#define SPI_SR_MODF                                         5
+#define SPI_SR_OVR                                          6
+#define SPI_SR_BSY                                          7
+#define SPI_SR_FRE                                          8
 
 
 

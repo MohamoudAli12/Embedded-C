@@ -2,6 +2,7 @@
 #define SPI_H
 
 #include "stm32f446xx.h"
+#include <stdbool.h>
 
 typedef enum
 {
@@ -64,7 +65,7 @@ typedef enum
     SPI_PIN_SET      
 } spi_pin_state_t;
 
-void config_spi_speed(spi_register_def_t *p_spi_x,spi_clk_speed_t clk_speed);
+void config_spi_speed(spi_register_def_t *p_spi_x, spi_clk_speed_t clk_speed);
 
 void config_spi_as_master_or_slave(spi_register_def_t *p_spi_x, spi_config_master_slave_t master_or_slave);
 
@@ -72,12 +73,19 @@ void config_spi_line_mode(spi_register_def_t *p_spi_x, spi_config_line_mode_t li
 
 void config_spi_data_length(spi_register_def_t *p_spi_x, spi_config_data_length_t data_length);
 
-void config_spi_cpha(spi_register_def_t *p_spi_x,spi_config_cpha_t cpha);
+void config_spi_cpha(spi_register_def_t *p_spi_x, spi_config_cpha_t cpha);
 
-void config_spi_cpol(spi_register_def_t *p_spi_x,spi_config_cpol_t cpol);
+void config_spi_cpol(spi_register_def_t *p_spi_x, spi_config_cpol_t cpol);
 
-void config_spi_slave_management(spi_register_def_t *p_spi_x,spi_config_slave_manage_t slave_management);
+void config_spi_slave_management(spi_register_def_t *p_spi_x, spi_config_slave_manage_t slave_management);
 
+void spi_peripheral_enable(spi_register_def_t *p_spi_x);
+
+void spi_peripheral_disable(spi_register_def_t *p_spi_x);
+
+void spi_data_send(spi_register_def_t *p_spi_x, uint8_t *p_tx_buffer, uint32_t size_of_data);
+
+_Bool spi_tx_buffer_is_empty(spi_register_def_t *p_spi_x);
 
 
 #endif /* SPI_H */

@@ -64,8 +64,51 @@ void config_spi_line_mode(spi_register_def_t *p_spi_x, spi_config_line_mode_t li
     }    
 
 }
+
 void config_spi_slave_management(spi_register_def_t *p_spi_x,spi_config_slave_manage_t slave_management)
 {
     p_spi_x->SPI_CR1 &= ~(0x01 << SPI_CR1_SSM);
     p_spi_x->SPI_CR1 |= (slave_management << SPI_CR1_SSM);
+}
+
+void spi_peripheral_enable(spi_register_def_t *p_spi_x)
+{
+    p_spi_x->SPI_CR1 |= (0x01 << SPI_CR1_SPE);
+}
+
+void spi_peripheral_disable(spi_register_def_t *p_spi_x)
+{
+    p_spi_x->SPI_CR1 &= ~(0x01 << SPI_CR1_SPE);
+}
+
+_Bool spi_tx_buffer_is_empty(spi_register_def_t *p_spi_x)
+{
+    
+    return (((p_spi_x->SPI_SR) & (0x02)) == 1);
+
+}
+
+
+void spi_data_send(spi_register_def_t *p_spi_x, uint8_t *p_tx_buffer, uint32_t size_of_data)
+{
+    while (size_of_data > 0)
+    {
+        while (!(spi_tx_buffer_is_empty(p_spi_x)));
+
+        if((p_spi_x->SPI_CR1) & (0x01 << SPI_CR1_DFF)) // if spi dataframe is 16bit
+        {
+            p_spi_x->SPI_DR = *((uint16_t *) p_tx_buffer);
+            size_of_data-=2;
+            p_tx_buffer+=2;
+
+        }
+        else
+        {
+            p_spi_x->SPI_DR = *p_tx_buffer;
+            size_of_data--;
+            p_tx_buffer++;
+        }
+    
+    }
+     
 }
