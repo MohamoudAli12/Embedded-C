@@ -79,11 +79,14 @@ void config_spi_cpol(spi_register_def_t *p_spi_x, spi_config_cpol_t cpol);
 
 void config_spi_slave_management(spi_register_def_t *p_spi_x, spi_config_slave_manage_t slave_management);
 
+
+
 void spi_peripheral_enable(spi_register_def_t *p_spi_x);
 
 void spi_peripheral_disable(spi_register_def_t *p_spi_x);
 
 void spi_data_send(spi_register_def_t *p_spi_x, uint8_t *p_tx_buffer, uint32_t size_of_data);
+void spi_data_receive(spi_register_def_t *p_spi_x, uint8_t *p_rx_buffer, uint32_t size_of_data);
 
 _Bool spi_tx_buffer_is_empty(spi_register_def_t *p_spi_x);
 
