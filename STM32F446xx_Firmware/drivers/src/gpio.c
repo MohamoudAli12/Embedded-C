@@ -149,7 +149,7 @@ void gpio_intrpt_config(gpio_intrpt_source_config_t gpiox_intrpt_src, gpio_pin_n
 
 
 
-void gpio_irq_enable(uint8_t irq_number, uint8_t enable_or_disable)
+void gpio_irq_enable(irq_position_t irq_number, uint8_t enable_or_disable)
 {
     if (enable_or_disable == ENABLE)
     {
@@ -185,7 +185,7 @@ void gpio_irq_enable(uint8_t irq_number, uint8_t enable_or_disable)
 
 
 
-void gpio_irq_priority(uint8_t irq_number, uint8_t irq_priority)
+void gpio_irq_priority(irq_position_t irq_number, uint8_t irq_priority)
 {
     uint8_t pri_reg_index = (irq_number)/(4);
     uint8_t pri_bit_shift = (irq_number%4)*(8)+ (8-NVIC_IPR_BITS_IMPLEMENTED);
@@ -196,7 +196,7 @@ void gpio_irq_priority(uint8_t irq_number, uint8_t irq_priority)
 }
 
 
-void gpio_clear_irq_pending(uint8_t pin_number)
+void gpio_clear_irq_pending(gpio_pin_num_t pin_number)
 {
     if ((EXTI->EXTI_PR) & (1<<pin_number))
     {
@@ -245,7 +245,7 @@ void gpio_de_init(gpio_register_def_t * p_gpio_x)
 
 
 
-uint8_t gpio_read_from_input_pin(gpio_register_def_t *p_gpio_x, uint8_t pin_number)
+uint8_t gpio_read_from_input_pin(gpio_register_def_t *p_gpio_x, gpio_pin_num_t pin_number)
 {
     uint8_t pin_value_read =0;
 
@@ -268,7 +268,7 @@ uint16_t gpio_read_from_input_port(gpio_register_def_t *p_gpio_x)
 
 
 
-void gpio_write_to_output_pin(gpio_register_def_t *p_gpio_x, uint8_t pin_number, uint8_t value_write)
+void gpio_write_to_output_pin(gpio_register_def_t *p_gpio_x, gpio_pin_num_t pin_number, uint8_t value_write)
 {
    
     
@@ -293,7 +293,7 @@ void gpio_write_to_output_port(gpio_register_def_t *p_gpio_x, uint16_t value_wri
 
 
 
-void gpio_toggle_output_pin(gpio_register_def_t *p_gpio_x, uint8_t pin_number)
+void gpio_toggle_output_pin(gpio_register_def_t *p_gpio_x, gpio_pin_num_t pin_number)
 {
     p_gpio_x->ODR ^= (1 << pin_number);
 

@@ -65,19 +65,19 @@ typedef enum
     SPI_PIN_SET      
 } spi_pin_state_t;
 
-void config_spi_speed(spi_register_def_t *p_spi_x, spi_clk_speed_t clk_speed);
+void spi_speed_config(spi_register_def_t *p_spi_x, spi_clk_speed_t clk_speed);
 
-void config_spi_as_master_or_slave(spi_register_def_t *p_spi_x, spi_config_master_slave_t master_or_slave);
+void spi_as_master_or_slave_config(spi_register_def_t *p_spi_x, spi_config_master_slave_t master_or_slave);
 
-void config_spi_line_mode(spi_register_def_t *p_spi_x, spi_config_line_mode_t line_mode);
+void spi_line_mode_config(spi_register_def_t *p_spi_x, spi_config_line_mode_t line_mode);
 
-void config_spi_data_length(spi_register_def_t *p_spi_x, spi_config_data_length_t data_length);
+void spi_data_length_config(spi_register_def_t *p_spi_x, spi_config_data_length_t data_length);
 
-void config_spi_cpha(spi_register_def_t *p_spi_x, spi_config_cpha_t cpha);
+void spi_cpha_config(spi_register_def_t *p_spi_x, spi_config_cpha_t cpha);
 
-void config_spi_cpol(spi_register_def_t *p_spi_x, spi_config_cpol_t cpol);
+void spi_cpol_config(spi_register_def_t *p_spi_x, spi_config_cpol_t cpol);
 
-void config_spi_slave_management(spi_register_def_t *p_spi_x, spi_config_slave_manage_t slave_management);
+void spi_slave_management_config(spi_register_def_t *p_spi_x, spi_config_slave_manage_t slave_management);
 
 
 

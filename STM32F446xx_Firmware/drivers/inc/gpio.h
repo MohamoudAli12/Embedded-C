@@ -93,8 +93,8 @@ typedef enum
 
 typedef enum 
 {
-    GPIO_PIN_RESET = RESET,
-    GPIO_PIN_SET = SET      
+    GPIO_PIN_RESET,
+    GPIO_PIN_SET     
 } gpio_pin_state_t;
 
 
@@ -217,7 +217,7 @@ void gpio_intrpt_config(gpio_intrpt_source_config_t gpiox_intrpt_src, gpio_pin_n
  */
 
 
-void gpio_irq_enable(uint8_t irq_number, uint8_t enable_or_disable);
+void gpio_irq_enable(irq_position_t irq_number, uint8_t enable_or_disable);
 
 
 
@@ -234,7 +234,7 @@ void gpio_irq_enable(uint8_t irq_number, uint8_t enable_or_disable);
  * @Note              - Ensure that the correct IRQ number and priority value are passed to this function.
  */
 
-void gpio_irq_priority(uint8_t irq_number, uint8_t irq_priority);
+void gpio_irq_priority(irq_position_t irq_number, uint8_t irq_priority);
 
 /*********************************************************************
  * @fn      		  - gpio_clear_irq_pending
@@ -250,7 +250,7 @@ void gpio_irq_priority(uint8_t irq_number, uint8_t irq_priority);
 
 
 
-void gpio_clear_irq_pending(uint8_t pin_number);
+void gpio_clear_irq_pending(gpio_pin_num_t pin_number);
 
 /*********************************************************************
  * @fn      		  - gpio_de_init
@@ -282,7 +282,7 @@ void gpio_de_init(gpio_register_def_t *p_gpio_x);  // you can use the rcc periph
  * @Note              - Ensure that the correct GPIO port base address and pin number are passed to this function.
  */
 
-uint8_t gpio_read_from_input_pin(gpio_register_def_t *p_gpio_x, uint8_t pin_number);
+uint8_t gpio_read_from_input_pin(gpio_register_def_t *p_gpio_x, gpio_pin_num_t pin_number);
 
 /*********************************************************************
  * @fn      		  - gpio_read_from_input_port
@@ -313,7 +313,7 @@ uint16_t gpio_read_from_input_port(gpio_register_def_t *p_gpio_x);
  */
 
 
-void gpio_write_to_output_pin(gpio_register_def_t *p_gpio_x, uint8_t pin_number, uint8_t value_write);
+void gpio_write_to_output_pin(gpio_register_def_t *p_gpio_x, gpio_pin_num_t pin_number, uint8_t value_write);
 
 /*********************************************************************
  * @fn      		  - gpio_write_to_output_port
@@ -345,7 +345,7 @@ void gpio_write_to_output_port(gpio_register_def_t *p_gpio_x, uint16_t value_wri
  */
 
 
-void gpio_toggle_output_pin(gpio_register_def_t *p_gpio_x, uint8_t pin_number);
+void gpio_toggle_output_pin(gpio_register_def_t *p_gpio_x, gpio_pin_num_t pin_number);
 
 
 

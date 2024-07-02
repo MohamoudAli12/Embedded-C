@@ -5,7 +5,7 @@
 
 #define BUTTON_PRESSED                      0
 
-#define EXTI15_10                           40
+
 
 
 
@@ -21,7 +21,7 @@ void button_interrupt_led_toggle(void)
 
     GPIOC_PCLK_EN();
     gpio_intrpt_config(GPIOC_INTRPT_SRC, GPIO_PIN_13, GPIO_INTRPT_EDGE_FALL);
-    gpio_irq_enable(EXTI15_10, ENABLE);
+    gpio_irq_enable(EXTI15_10_IRQ_POS, ENABLE);
   
   
     while(1)

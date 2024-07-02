@@ -2,7 +2,7 @@
 
 
 
-void config_spi_speed(spi_register_def_t *p_spi_x, spi_clk_speed_t clk_speed)
+void spi_speed_config(spi_register_def_t *p_spi_x, spi_clk_speed_t clk_speed)
 {
     const uint8_t spi_cr1_br_mask =0x07;
     p_spi_x->SPI_CR1 &= ~(spi_cr1_br_mask << SPI_CR1_BR);
@@ -10,32 +10,32 @@ void config_spi_speed(spi_register_def_t *p_spi_x, spi_clk_speed_t clk_speed)
 
 }
 
-void config_spi_as_master_or_slave(spi_register_def_t *p_spi_x, spi_config_master_slave_t master_or_slave)
+void spi_as_master_or_slave_config(spi_register_def_t *p_spi_x, spi_config_master_slave_t master_or_slave)
 {
     p_spi_x->SPI_CR1 &= ~(0x01 << SPI_CR1_MSTR);
     p_spi_x->SPI_CR1 |= (master_or_slave << SPI_CR1_MSTR);    
 }
 
 
-void config_spi_data_length(spi_register_def_t *p_spi_x, spi_config_data_length_t data_length)
+void spi_data_length_config(spi_register_def_t *p_spi_x, spi_config_data_length_t data_length)
 {
     p_spi_x->SPI_CR1 &= ~(0x01 << SPI_CR1_DFF);
     p_spi_x->SPI_CR1 |= (data_length << SPI_CR1_DFF);
 }
 
-void config_spi_cpha(spi_register_def_t *p_spi_x,spi_config_cpha_t cpha)
+void spi_cpha_config(spi_register_def_t *p_spi_x,spi_config_cpha_t cpha)
 {
     p_spi_x->SPI_CR1 &= ~(0x01 << SPI_CR1_CPHA);
     p_spi_x->SPI_CR1 |= (cpha << SPI_CR1_CPHA);
 }
 
-void config_spi_cpol(spi_register_def_t *p_spi_x,spi_config_cpol_t cpol)
+void spi_cpol_config(spi_register_def_t *p_spi_x,spi_config_cpol_t cpol)
 {
     p_spi_x->SPI_CR1 &= ~(0x01 << SPI_CR1_CPOL);
     p_spi_x->SPI_CR1 |= (cpol << SPI_CR1_CPOL);
 }
 
-void config_spi_line_mode(spi_register_def_t *p_spi_x, spi_config_line_mode_t line_mode)
+void spi_line_mode_config(spi_register_def_t *p_spi_x, spi_config_line_mode_t line_mode)
 {
     switch (line_mode)
     {
@@ -65,7 +65,7 @@ void config_spi_line_mode(spi_register_def_t *p_spi_x, spi_config_line_mode_t li
 
 }
 
-void config_spi_slave_management(spi_register_def_t *p_spi_x,spi_config_slave_manage_t slave_management)
+void spi_slave_management_config(spi_register_def_t *p_spi_x,spi_config_slave_manage_t slave_management)
 {
     p_spi_x->SPI_CR1 &= ~(0x01 << SPI_CR1_SSM);
     if (slave_management == SPI_SW_SLAVE_MANAGE)
