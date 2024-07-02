@@ -4,11 +4,11 @@
 #include "fn_prototypes.h"
 
 
+
 int main() 
 {
     //button_interrupt_led_toggle();
-    //toggle_led_on_button_press();
-   blink_led();
-
+    toggle_led_on_button_press();
+   //blink_led();
 
 }
