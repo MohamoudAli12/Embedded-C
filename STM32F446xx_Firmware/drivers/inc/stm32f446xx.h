@@ -58,11 +58,16 @@ typedef enum
 /***********************************************************************************************/
 /***********************************************************************************************/
 
-#define ENABLE                                                            1
-#define DISABLE                                                           0
-#define SET                                                               ENABLE
-#define RESET                                                             DISABLE
 
+typedef enum 
+{
+    DISABLE = 0,
+    ENABLE = 1,
+    RESET = DISABLE,
+    SET = ENABLE,
+    HIGH = SET,
+    LOW = RESET
+}signal_state_t;
 
 
 /***********************************************************************************************/
@@ -332,6 +337,13 @@ typedef struct
 #define SPI_CR1_CRCEN                                       13 
 #define SPI_CR1_BIDIOE                                      14 
 #define SPI_CR1_BIDIMODE                                    15
+
+// SPI CR2 Register bits fields
+
+#define SPI_CR2_TXEIE                                       7
+#define SPI_CR2_RXNEIE                                      6
+#define SPI_CR2_ERRIE                                       5
+
 
 // SPI status register bit fields
 

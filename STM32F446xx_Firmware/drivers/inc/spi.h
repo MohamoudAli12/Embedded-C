@@ -3,6 +3,7 @@
 
 #include "stm32f446xx.h"
 #include <stdbool.h>
+#include <stddef.h>
 
 typedef enum
 {
@@ -16,6 +17,13 @@ typedef enum
     SPI_CLK_SPEED_62K5HZ
 }spi_clk_speed_t;
 
+typedef enum
+{
+    SPI_READY,
+    SPI_BUSY_TX,
+    SPI_BUSY_RX
+
+}spi_state_t;
 
 typedef enum
 {
@@ -65,6 +73,8 @@ typedef enum
     SPI_PIN_SET      
 } spi_pin_state_t;
 
+
+
 void spi_speed_config(spi_register_def_t *p_spi_x, spi_clk_speed_t clk_speed);
 
 void spi_as_master_or_slave_config(spi_register_def_t *p_spi_x, spi_config_master_slave_t master_or_slave);
@@ -85,10 +95,23 @@ void spi_peripheral_enable(spi_register_def_t *p_spi_x);
 
 void spi_peripheral_disable(spi_register_def_t *p_spi_x);
 
-void spi_data_send(spi_register_def_t *p_spi_x, uint8_t *p_tx_buffer, uint32_t size_of_data);
-void spi_data_receive(spi_register_def_t *p_spi_x, uint8_t *p_rx_buffer, uint32_t size_of_data);
+void spi_data_send(spi_register_def_t *p_spi_x, uint8_t *p_tx_buffer, size_t size_of_data);
+void spi_data_receive(spi_register_def_t *p_spi_x, uint8_t *p_rx_buffer, size_t size_of_data);
 
-_Bool spi_tx_buffer_is_empty(spi_register_def_t *p_spi_x);
+bool spi_tx_buffer_is_empty(spi_register_def_t *p_spi_x);
+
+
+void spi_disable_interrupts(spi_register_def_t *p_spi_x);
+void spi_intrpt_data_send(spi_register_def_t *p_spi_x, uint8_t *p_tx_buffer, size_t size_of_data);
+void spi_intrpt_data_receive(spi_register_def_t *p_spi_x, uint8_t *p_tx_buffer, size_t size_of_data);
+
+
+
+
+
+
+
+
 
 
 #endif /* SPI_H */

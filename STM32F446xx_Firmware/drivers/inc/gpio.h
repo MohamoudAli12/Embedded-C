@@ -217,7 +217,7 @@ void gpio_intrpt_config(gpio_intrpt_source_config_t gpiox_intrpt_src, gpio_pin_n
  */
 
 
-void gpio_irq_enable(irq_position_t irq_number, uint8_t enable_or_disable);
+void  gpio_irq_enable_or_disable(irq_position_t irq_number, signal_state_t enable_or_disable);
 
 
 
