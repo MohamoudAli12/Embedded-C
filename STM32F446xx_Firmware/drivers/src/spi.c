@@ -1,11 +1,16 @@
 #include "spi.h"
 
-volatile uint8_t *g_tx_buffer;
-volatile uint8_t *g_rx_buffer;
-volatile size_t g_tx_size;
-volatile size_t g_rx_size;
-volatile spi_state_t g_rx_state = SPI_READY;
-volatile spi_state_t g_tx_state = SPI_READY;
+
+static void spi_interrupt_handle_tx(spi_handle_t *spi_handle, spi_register_def_t *p_spi_x);
+static void spi_close_tx(spi_handle_t *spi_handle, spi_register_def_t *p_spi_x);
+static void spi_interrupt_handle_rx(spi_handle_t *spi_handle, spi_register_def_t *p_spi_x);
+static void spi_close_rx(spi_handle_t *spi_handle, spi_register_def_t *p_spi_x);
+static void spi_irq_handler(spi_handle_t *spi_handle, spi_register_def_t *p_spi_x);
+
+spi_handle_t spi1_handle = {0};
+spi_handle_t spi2_handle = {0};
+spi_handle_t spi3_handle = {0};
+spi_handle_t spi4_handle = {0};
 
 void spi_speed_config(spi_register_def_t *p_spi_x, spi_clk_speed_t clk_speed)
 {
@@ -101,7 +106,7 @@ _Bool spi_tx_buffer_is_full(spi_register_def_t *p_spi_x)
 }
 
 
-void spi_data_send(spi_register_def_t *p_spi_x, uint8_t *p_tx_buffer, size_t size_of_data)
+void spi_data_tx(spi_register_def_t *p_spi_x, uint8_t *p_tx_buffer, size_t size_of_data)
 {
     while (size_of_data > 0)
     {
@@ -131,7 +136,7 @@ bool spi_rx_buffer_is_empty(spi_register_def_t *p_spi_x)
 
 }
 
-void spi_data_receive(spi_register_def_t *p_spi_x, uint8_t *p_rx_buffer, size_t size_of_data)
+void spi_data_rx(spi_register_def_t *p_spi_x, uint8_t *p_rx_buffer, size_t size_of_data)
 {
     while (size_of_data > 0)
     {
@@ -153,73 +158,121 @@ void spi_data_receive(spi_register_def_t *p_spi_x, uint8_t *p_rx_buffer, size_t 
 }
 
 /*************************************************SPI INTERRUPT *********************************/
-void spi_disable_interrupts(spi_register_def_t *p_spi_x)
+
+
+void spi_interrupt_data_tx(spi_handle_t *spi_handle, spi_register_def_t *p_spi_x, uint8_t *p_tx_buffer, size_t size_of_data)
 {
-    p_spi_x->SPI_CR2 &= ~((1 << SPI_CR2_TXEIE) | (1 << SPI_CR2_RXNEIE));
+    if (spi_handle->tx_state != SPI_BUSY_TX)
+    {
+        spi_handle->tx_buffer = p_tx_buffer;
+        spi_handle->tx_size = size_of_data;
+        spi_handle->tx_state = SPI_BUSY_TX;
+        p_spi_x->SPI_CR2 |= (1 << SPI_CR2_TXEIE); // Enable TXE interrupt
+    }
 }
 
-void spi_intrpt_data_send(spi_register_def_t *p_spi_x, uint8_t *p_tx_buffer, size_t size_of_data)
+void spi_interrupt_data_rx(spi_handle_t *spi_handle, spi_register_def_t *p_spi_x, uint8_t *p_rx_buffer, size_t size_of_data)
 {
-    spi_state_t state = g_tx_state;
-    if(state != SPI_BUSY_TX)
+    if (spi_handle->rx_state != SPI_BUSY_RX)
     {
-        g_tx_buffer = p_tx_buffer;
-        g_tx_size = size_of_data;
-        p_spi_x->SPI_CR2 |= (1 << SPI_CR2_TXEIE);
-        g_tx_state = SPI_BUSY_TX;
+        spi_handle->rx_buffer = p_rx_buffer;
+        spi_handle->rx_size = size_of_data;
+        spi_handle->rx_state = SPI_BUSY_RX;
+        p_spi_x->SPI_CR2 |= (1 << SPI_CR2_RXNEIE); // Enable RXNE interrupt
     }
-    
 }
 
-void spi_intrpt_data_receive(spi_register_def_t *p_spi_x, uint8_t *p_rx_buffer, size_t size_of_data)
+
+static void spi_interrupt_handle_tx(spi_handle_t *spi_handle, spi_register_def_t *p_spi_x)
 {
-    spi_state_t state = g_rx_state;
-    if(state != SPI_BUSY_RX)
+    if ((p_spi_x->SPI_CR1) & (0x01 << SPI_CR1_DFF)) // if spi dataframe is 16bit
     {
-        g_rx_buffer = p_rx_buffer;
-        g_rx_size = size_of_data;
-        p_spi_x->SPI_CR2 |= (1 << SPI_CR2_RXNEIE);
-        g_rx_state = SPI_BUSY_RX;
+        p_spi_x->SPI_DR = *((uint16_t *) spi_handle->tx_buffer);
+        spi_handle->tx_size -= 2;
+        spi_handle->tx_buffer += 2;
     }
-    
+    else
+    {
+        p_spi_x->SPI_DR = *spi_handle->tx_buffer;
+        spi_handle->tx_size--;
+        spi_handle->tx_buffer++;
+    }
+
+    if (spi_handle->tx_size == 0)
+    {
+        spi_close_tx(spi_handle, p_spi_x);
+    }
 }
 
-void SPI_IRQHandler(spi_register_def_t *p_spi_x)
+static void spi_close_tx(spi_handle_t *spi_handle, spi_register_def_t *p_spi_x)
 {
-    if ((p_spi_x->SPI_SR & (1 << SPI_SR_TXE)) && (g_tx_size > 0))
+    p_spi_x->SPI_CR2 &= ~(1 << SPI_CR2_TXEIE); // Disable TXE interrupt
+    spi_handle->tx_size = 0;
+    spi_handle->tx_buffer = 0;
+    spi_handle->tx_state = SPI_READY;
+}
+
+static void spi_interrupt_handle_rx(spi_handle_t *spi_handle, spi_register_def_t *p_spi_x)
+{
+    if ((p_spi_x->SPI_CR1) & (0x01 << SPI_CR1_DFF)) // if spi dataframe is 16bit
     {
-        if((p_spi_x->SPI_CR1) & (0x01 << SPI_CR1_DFF)) // if spi dataframe is 16bit
-        {
-            p_spi_x->SPI_DR = *((uint16_t *) g_tx_buffer);
-            g_tx_size -= 2;
-            g_tx_buffer += 2;
-        }
-        else
-        {
-            p_spi_x->SPI_DR = *g_tx_buffer;
-            g_tx_size--;
-            g_tx_buffer++;
-        }
+        *((uint16_t *) spi_handle->rx_buffer) = (uint16_t)p_spi_x->SPI_DR;
+        spi_handle->rx_size -= 2;
+        spi_handle->rx_buffer += 2;
+    }
+    else
+    {
+       *spi_handle->rx_buffer = (uint8_t)p_spi_x->SPI_DR;
+        spi_handle->rx_size--;
+        spi_handle->rx_buffer++;
     }
 
-    if ((p_spi_x->SPI_SR & (1 << SPI_SR_RXNE)) && (g_rx_size > 0))
+    if (spi_handle->rx_size == 0)
     {
-        if((p_spi_x->SPI_CR1) & (0x01 << SPI_CR1_DFF)) // if spi dataframe is 16bit
-        {
-            *((uint16_t *) g_rx_buffer) = (uint16_t)p_spi_x->SPI_DR;
-            g_rx_size -= 2;
-            g_rx_buffer += 2;
-        }
-        else
-        {
-            *g_rx_buffer = (uint8_t)p_spi_x->SPI_DR;
-            g_rx_size--;
-            g_rx_buffer++;
-        }
-    }
-
-    if (g_tx_size == 0 && g_rx_size == 0)
-    {
-        spi_disable_interrupts(p_spi_x);
+        spi_close_rx(spi_handle, p_spi_x);
     }
 }
+
+static void spi_close_rx(spi_handle_t *spi_handle, spi_register_def_t *p_spi_x)
+{
+    p_spi_x->SPI_CR2 &= ~(1 << SPI_CR2_RXNEIE); // Disable RXNE interrupt
+    spi_handle->rx_size = 0;
+    spi_handle->rx_buffer = 0;
+    spi_handle->rx_state = SPI_READY;
+}
+
+
+static void spi_irq_handler(spi_handle_t *spi_handle, spi_register_def_t *p_spi_x)
+{
+    if ((p_spi_x->SPI_SR & (1 << SPI_SR_TXE)) && (spi_handle->tx_state == SPI_BUSY_TX) && (spi_handle->tx_size > 0))
+    {
+        spi_interrupt_handle_tx(spi_handle, p_spi_x);
+    }
+
+    if ((p_spi_x->SPI_SR & (1 << SPI_SR_RXNE)) && (spi_handle->rx_state == SPI_BUSY_RX) && (spi_handle->rx_size > 0))
+    {
+        spi_interrupt_handle_rx(spi_handle, p_spi_x);
+    }
+}
+
+
+void SPI1_IRQHandler(void)
+{
+    spi_irq_handler(&spi1_handle, SPI1);
+}
+
+void SPI2_IRQHandler(void)
+{
+    spi_irq_handler(&spi2_handle, SPI2);
+}
+
+void SPI3_IRQHandler(void)
+{
+    spi_irq_handler(&spi3_handle, SPI3);
+}
+
+void SPI4_IRQHandler(void)
+{
+    spi_irq_handler(&spi4_handle, SPI4);
+}
+

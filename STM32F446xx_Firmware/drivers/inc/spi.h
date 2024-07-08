@@ -29,7 +29,7 @@ typedef enum
 {
     SPI_MODE_SLAVE,
     SPI_MODE_MASTER
-} spi_config_master_slave_t;
+}spi_config_master_slave_t;
 
 
 typedef enum
@@ -73,6 +73,16 @@ typedef enum
     SPI_PIN_SET      
 } spi_pin_state_t;
 
+typedef struct
+{
+    volatile uint8_t *tx_buffer;
+    volatile uint8_t *rx_buffer;
+    volatile size_t tx_size;
+    volatile size_t rx_size;
+    volatile spi_state_t rx_state;
+    volatile spi_state_t tx_state;
+}spi_handle_t;
+
 
 
 void spi_speed_config(spi_register_def_t *p_spi_x, spi_clk_speed_t clk_speed);
@@ -95,15 +105,14 @@ void spi_peripheral_enable(spi_register_def_t *p_spi_x);
 
 void spi_peripheral_disable(spi_register_def_t *p_spi_x);
 
-void spi_data_send(spi_register_def_t *p_spi_x, uint8_t *p_tx_buffer, size_t size_of_data);
-void spi_data_receive(spi_register_def_t *p_spi_x, uint8_t *p_rx_buffer, size_t size_of_data);
+void spi_data_tx(spi_register_def_t *p_spi_x, uint8_t *p_tx_buffer, size_t size_of_data);
+void spi_data_rx(spi_register_def_t *p_spi_x, uint8_t *p_rx_buffer, size_t size_of_data);
 
 bool spi_tx_buffer_is_empty(spi_register_def_t *p_spi_x);
 
 
-void spi_disable_interrupts(spi_register_def_t *p_spi_x);
-void spi_intrpt_data_send(spi_register_def_t *p_spi_x, uint8_t *p_tx_buffer, size_t size_of_data);
-void spi_intrpt_data_receive(spi_register_def_t *p_spi_x, uint8_t *p_tx_buffer, size_t size_of_data);
+void spi_interrupt_data_tx(spi_handle_t *spi_handle, spi_register_def_t *p_spi_x, uint8_t *p_tx_buffer, size_t size_of_data);
+void spi_interrupt_data_rx(spi_handle_t *spi_handle, spi_register_def_t *p_spi_x, uint8_t *p_rx_buffer, size_t size_of_data);
 
 
 
