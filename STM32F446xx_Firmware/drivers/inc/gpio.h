@@ -203,38 +203,7 @@ void gpio_pull_type_config (gpio_register_def_t * p_gpio_x, gpio_pin_num_t pin_n
 
 void gpio_intrpt_config(gpio_intrpt_source_config_t gpiox_intrpt_src, gpio_pin_num_t pin_number, gpio_intrpt_edge_config_t intrpt_mode);
 
-/*********************************************************************
- * @fn      		  - gpio_irq_enable
- *
- * @brief             - Enable or disable interrupt for the specified IRQ number
- *
- * @param[in]         - irq_number: IRQ number to enable or disable
- * @param[in]         - enable_or_disable: ENABLE or DISABLE to control the interrupt
- *
- * @return            - None
- *
- * @Note              - Ensure that the correct IRQ number and enable/disable flag are passed to this function.
- */
 
-
-void  gpio_irq_enable_or_disable(irq_position_t irq_number, signal_state_t enable_or_disable);
-
-
-
-/*********************************************************************
- * @fn      		  - gpio_irq_priority
- *
- * @brief             - Set the priority for the specified IRQ number
- *
- * @param[in]         - irq_number: IRQ number to set the priority for
- * @param[in]         - irq_priority: Priority value to be set for the IRQ
- *
- * @return            - None
- *
- * @Note              - Ensure that the correct IRQ number and priority value are passed to this function.
- */
-
-void gpio_irq_priority(irq_position_t irq_number, uint8_t irq_priority);
 
 /*********************************************************************
  * @fn      		  - gpio_clear_irq_pending

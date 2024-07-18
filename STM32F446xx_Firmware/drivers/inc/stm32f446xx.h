@@ -55,6 +55,44 @@ typedef enum
 }irq_position_t;
 
 
+/*********************************************************************
+ * @fn      		  - gpio_irq_enable
+ *
+ * @brief             - Enable or disable interrupt for the specified IRQ number
+ *
+ * @param[in]         - irq_number: IRQ number to enable or disable
+ * @param[in]         - enable_or_disable: ENABLE or DISABLE to control the interrupt
+ *
+ * @return            - None
+ *
+ * @Note              - Ensure that the correct IRQ number and enable/disable flag are passed to this function.
+ */
+
+
+void  gpio_irq_enable_or_disable(irq_position_t irq_number, signal_state_t enable_or_disable);
+
+
+
+/*********************************************************************
+ * @fn      		  - gpio_irq_priority
+ *
+ * @brief             - Set the priority for the specified IRQ number
+ *
+ * @param[in]         - irq_number: IRQ number to set the priority for
+ * @param[in]         - irq_priority: Priority value to be set for the IRQ
+ *
+ * @return            - None
+ *
+ * @Note              - Ensure that the correct IRQ number and priority value are passed to this function.
+ */
+
+void gpio_irq_priority(irq_position_t irq_number, uint8_t irq_priority);
+
+
+
+
+
+
 /***********************************************************************************************/
 /***********************************************************************************************/
 
@@ -364,6 +402,51 @@ typedef struct
 /***********************************************************************************************/
 
 
+void irq_enable_or_disable(irq_position_t irq_number, signal_state_t enable_or_disable)
+{
+    if (enable_or_disable == ENABLE)
+    {
+        if (irq_number <= 31)
+        {
+            *NVIC_ISER0 |= (1 << irq_number);
+        }
+        else if ((irq_number >= 32) && (irq_number <= 63))
+        {
+            *NVIC_ISER1 |= (1 << (irq_number - 32));
+        }
+        else if ((irq_number >= 64) && (irq_number <= 95))
+        {
+            *NVIC_ISER2 |= (1 << (irq_number - 64));
+        }
+    }
+    else
+    {
+        if (irq_number <= 31)
+        {
+            *NVIC_ICER0 |= (1 << irq_number);
+        }
+        else if ((irq_number >= 32) && (irq_number <= 63))
+        {
+            *NVIC_ICER1 |= (1 << (irq_number - 32));
+        }
+        else if ((irq_number >= 64) && (irq_number <= 95))
+        {
+            *NVIC_ICER2 |= (1 << (irq_number - 64));
+        }
+    }
+}
+
+
+
+void irq_priority_config(irq_position_t irq_number, uint8_t irq_priority)
+{
+    uint8_t pri_reg_index = (irq_number)/(4);
+    uint8_t pri_bit_shift = (irq_number%4)*(8)+ (8-NVIC_IPR_BITS_IMPLEMENTED);
+
+    *(NVIC_IPR_BASE_ADDR + ((pri_reg_index) *(4))) &= ~(0x0F << pri_bit_shift);
+    *(NVIC_IPR_BASE_ADDR + ((pri_reg_index) *(4))) |= (irq_priority << pri_bit_shift);
+
+}
 
 
 

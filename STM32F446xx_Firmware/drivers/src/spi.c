@@ -75,13 +75,13 @@ void spi_line_mode_config(spi_register_def_t *p_spi_x, spi_config_line_mode_t li
 
 }
 
-void spi_slave_management_config(spi_register_def_t *p_spi_x,spi_config_slave_manage_t slave_management)
+void spi_slave_management_config(spi_register_def_t *p_spi_x, spi_config_slave_manage_t slave_management)
 {
     p_spi_x->SPI_CR1 &= ~(0x01 << SPI_CR1_SSM);
     if (slave_management == SPI_SW_SLAVE_MANAGE)
     {
         p_spi_x->SPI_CR1 |= (slave_management << SPI_CR1_SSM);
-        p_spi_x->SPI_CR1 |= (0x01 << SPI_CR1_SSI);
+        p_spi_x->SPI_CR1 |= (0x01 << SPI_CR1_SSI); 
 
     }
     
@@ -98,7 +98,7 @@ void spi_peripheral_disable(spi_register_def_t *p_spi_x)
     p_spi_x->SPI_CR1 &= ~(0x01 << SPI_CR1_SPE);
 }
 
-_Bool spi_tx_buffer_is_full(spi_register_def_t *p_spi_x)
+bool spi_tx_buffer_is_full(spi_register_def_t *p_spi_x)
 {
     
     return (((p_spi_x->SPI_SR) & (0x02)) == 0);
@@ -157,7 +157,7 @@ void spi_data_rx(spi_register_def_t *p_spi_x, uint8_t *p_rx_buffer, size_t size_
     }
 }
 
-/*************************************************SPI INTERRUPT *********************************/
+/*************************************************SPI INTERRUPT*********************************/
 
 
 void spi_interrupt_data_tx(spi_handle_t *spi_handle, spi_register_def_t *p_spi_x, uint8_t *p_tx_buffer, size_t size_of_data)
