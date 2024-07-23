@@ -54,49 +54,6 @@ typedef enum
 
 }irq_position_t;
 
-
-/*********************************************************************
- * @fn      		  - gpio_irq_enable
- *
- * @brief             - Enable or disable interrupt for the specified IRQ number
- *
- * @param[in]         - irq_number: IRQ number to enable or disable
- * @param[in]         - enable_or_disable: ENABLE or DISABLE to control the interrupt
- *
- * @return            - None
- *
- * @Note              - Ensure that the correct IRQ number and enable/disable flag are passed to this function.
- */
-
-
-void  gpio_irq_enable_or_disable(irq_position_t irq_number, signal_state_t enable_or_disable);
-
-
-
-/*********************************************************************
- * @fn      		  - gpio_irq_priority
- *
- * @brief             - Set the priority for the specified IRQ number
- *
- * @param[in]         - irq_number: IRQ number to set the priority for
- * @param[in]         - irq_priority: Priority value to be set for the IRQ
- *
- * @return            - None
- *
- * @Note              - Ensure that the correct IRQ number and priority value are passed to this function.
- */
-
-void gpio_irq_priority(irq_position_t irq_number, uint8_t irq_priority);
-
-
-
-
-
-
-/***********************************************************************************************/
-/***********************************************************************************************/
-
-
 typedef enum 
 {
     DISABLE = 0,
@@ -106,6 +63,18 @@ typedef enum
     HIGH = SET,
     LOW = RESET
 }signal_state_t;
+
+
+
+
+
+
+
+
+/***********************************************************************************************/
+/***********************************************************************************************/
+
+
 
 
 /***********************************************************************************************/
@@ -292,7 +261,7 @@ typedef struct
 
 // SYSCFG base address definition
 
-#define SYSCFG_BASE_ADDR                      ((APB2_BASE_ADDR) + (0x3800U))
+#define SYSCFG_BASE_ADDR                                ((APB2_BASE_ADDR) + (0x3800U))
 //SYSCFG Register definitions
 typedef struct
 {
@@ -308,12 +277,12 @@ typedef struct
     volatile uint32_t SYSCFG_CFGR;
 }syscfg_register_def_t;
 
-#define SYSCFG                                  ((syscfg_register_def_t *)SYSCFG_BASE_ADDR)
+#define SYSCFG                                           ((syscfg_register_def_t *)SYSCFG_BASE_ADDR)
 
 // clock enable for SYSCFG
 
-#define SYSCFG_PCLK_EN()                        ((RCC->RCC_APB2ENR)  |= (1<<14))
-#define SYSCFG_PCLK_DI()                        ((RCC->RCC_APB2ENR)  &= ~(1<<14))
+#define SYSCFG_PCLK_EN()                                 ((RCC->RCC_APB2ENR)  |= (1<<14))
+#define SYSCFG_PCLK_DI()                                 ((RCC->RCC_APB2ENR)  &= ~(1<<14))
 
 /***********************************************************************************************/
 /***********************************************************************************************/
@@ -401,52 +370,49 @@ typedef struct
 /***********************************************************************************************/
 /***********************************************************************************************/
 
+//I2C Base Address definition
 
-void irq_enable_or_disable(irq_position_t irq_number, signal_state_t enable_or_disable)
+#define I2C1_BASE_ADDR                                    ((APB1_BASE_ADDR)+(0x5400U))
+#define I2C2_BASE_ADDR                                    ((APB1_BASE_ADDR)+(0x5800U)) 
+#define I2C3_BASE_ADDR                                    ((APB1_BASE_ADDR)+(0x5C00U)) 
+
+// I2C register definitions
+
+typedef struct 
 {
-    if (enable_or_disable == ENABLE)
-    {
-        if (irq_number <= 31)
-        {
-            *NVIC_ISER0 |= (1 << irq_number);
-        }
-        else if ((irq_number >= 32) && (irq_number <= 63))
-        {
-            *NVIC_ISER1 |= (1 << (irq_number - 32));
-        }
-        else if ((irq_number >= 64) && (irq_number <= 95))
-        {
-            *NVIC_ISER2 |= (1 << (irq_number - 64));
-        }
-    }
-    else
-    {
-        if (irq_number <= 31)
-        {
-            *NVIC_ICER0 |= (1 << irq_number);
-        }
-        else if ((irq_number >= 32) && (irq_number <= 63))
-        {
-            *NVIC_ICER1 |= (1 << (irq_number - 32));
-        }
-        else if ((irq_number >= 64) && (irq_number <= 95))
-        {
-            *NVIC_ICER2 |= (1 << (irq_number - 64));
-        }
-    }
-}
+    volatile uint32_t I2C_CR1;
+    volatile uint32_t I2C_CR2;
+    volatile uint32_t I2C_OAR1;
+    volatile uint32_t I2C_OAR2;
+    volatile uint32_t I2C_DR;
+    volatile uint32_t I2C_SR1;
+    volatile uint32_t I2C_SR2;
+    volatile uint32_t I2C_TRISE;
+    volatile uint32_t I2C_FLTR;
+}i2c_register_def_t;
+
+#define I2C1                                                ((i2c_register_def_t *)I2C1_BASE_ADDR)
+#define I2C2                                                ((i2c_register_def_t *)I2C2_BASE_ADDR)
+#define I2C3                                                ((i2c_register_def_t *)I2C3_BASE_ADDR)
+
+// I2C peripheral clock enable 
+
+#define I2C1_PCLK_EN()                                      ((RCC->RCC_APB1ENR)  |= (1<<21))
+#define I2C2_PCLK_EN()                                      ((RCC->RCC_APB1ENR)  |= (1<<22))
+#define I2C3_PCLK_EN()                                      ((RCC->RCC_APB1ENR)  |= (1<<23))
+
+// I2C peripheral clock disable 
+
+#define I2C1_PCLK_DI()                                      ((RCC->RCC_APB1ENR)  &= ~(1<<21))
+#define I2C2_PCLK_DI()                                      ((RCC->RCC_APB1ENR)  &= ~(1<<22))
+#define I2C3_PCLK_DI()                                      ((RCC->RCC_APB1ENR)  &= ~(1<<23))
 
 
 
-void irq_priority_config(irq_position_t irq_number, uint8_t irq_priority)
-{
-    uint8_t pri_reg_index = (irq_number)/(4);
-    uint8_t pri_bit_shift = (irq_number%4)*(8)+ (8-NVIC_IPR_BITS_IMPLEMENTED);
 
-    *(NVIC_IPR_BASE_ADDR + ((pri_reg_index) *(4))) &= ~(0x0F << pri_bit_shift);
-    *(NVIC_IPR_BASE_ADDR + ((pri_reg_index) *(4))) |= (irq_priority << pri_bit_shift);
+/***********************************************************************************************/
+/***********************************************************************************************/
 
-}
 
 
 
