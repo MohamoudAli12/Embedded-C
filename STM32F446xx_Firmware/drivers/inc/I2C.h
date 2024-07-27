@@ -13,6 +13,7 @@
 
 #define I2C_CR1_PE                                         0
 #define I2C_CCR_FS                                         15
+#define I2C_PCLK1_FREQ                                     16000000UL
 
 
 typedef enum 
@@ -32,10 +33,11 @@ typedef enum
 
 typedef enum
 {
-    I2C_FREQ_2MHZ = 0x02
+    I2C_SCL_FREQ_100KHZ = 100000UL,
+    I2C_SCL_FREQ_400KHZ = 400000UL
 
 
-}i2c_freq_t;
+}i2c_scl_freq_t;
 
 void i2c_peripheral_enable(i2c_register_def_t *p_i2c_x);
 
@@ -48,6 +50,7 @@ void i2c_fm_mode_config(i2c_register_def_t *p_i2c_x);
 void i2c_own_addr_config(i2c_register_def_t *p_i2c_x, uint8_t own_addr);
 
 
+void i2c_scl_speed_config(i2c_register_def_t *p_i2c_x, i2c_speed_t fm_or_sm_mode, i2c_scl_freq_t scl_freq);
 
 
 

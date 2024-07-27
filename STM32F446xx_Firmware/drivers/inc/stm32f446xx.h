@@ -387,6 +387,7 @@ typedef struct
     volatile uint32_t I2C_DR;
     volatile uint32_t I2C_SR1;
     volatile uint32_t I2C_SR2;
+    volatile uint32_t I2C_CCR;
     volatile uint32_t I2C_TRISE;
     volatile uint32_t I2C_FLTR;
 }i2c_register_def_t;
