@@ -13,7 +13,7 @@
 
 #define I2C_CR1_PE                                         0
 #define I2C_CCR_FS                                         15
-#define I2C_PCLK1_FREQ                                     16000000UL
+
 
 
 typedef enum 
