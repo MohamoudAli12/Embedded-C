@@ -77,7 +77,7 @@ static uint32_t i2c_pclk1_freq_get(void)
 
 }
 
-static void i2c_cr2_freq_config(i2c_register_def_t *p_i2c_x)
+void i2c_cr2_freq_config(i2c_register_def_t *p_i2c_x)
 {
     p_i2c_x->I2C_CR2 |= i2c_pclk1_freq_get() & (0x3F);
 }
@@ -85,14 +85,21 @@ static void i2c_cr2_freq_config(i2c_register_def_t *p_i2c_x)
 
 void i2c_scl_speed_config(i2c_register_def_t *p_i2c_x, i2c_speed_t fm_or_sm_mode, i2c_scl_freq_t scl_freq)
 {
-    uint16_t ccr_mask = 0xFFF;
     
     if ((fm_or_sm_mode == I2C_SPEED_STANDARD) && (scl_freq == I2C_SCL_FREQ_100KHZ))
     {
-        
+        p_i2c_x->I2C_CCR |= ((i2c_pclk1_freq_get())/(2 *(I2C_SCL_FREQ_100KHZ/1000000UL))) & (0xFFF);
     }
     else if ((fm_or_sm_mode == I2C_SPEED_FAST) && (scl_freq == I2C_SCL_FREQ_400KHZ))
     {
-    
+        if ((p_i2c_x->I2C_CCR >> 14) & (0x01))
+        {
+            p_i2c_x->I2C_CCR |= ((i2c_pclk1_freq_get())/(3 *(I2C_SCL_FREQ_400KHZ/1000000UL))) & (0xFFF); // check logic
+        }
+        else
+        {
+            p_i2c_x->I2C_CCR |= ((i2c_pclk1_freq_get())/(25 *(I2C_SCL_FREQ_400KHZ/1000000UL))) & (0xFFF);
+        }
+        
     }
 }
