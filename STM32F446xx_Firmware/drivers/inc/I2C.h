@@ -42,17 +42,15 @@ typedef enum
 void i2c_peripheral_enable(i2c_register_def_t *p_i2c_x);
 
 void i2c_peripheral_disable(i2c_register_def_t *p_i2c_x);
-
-void i2c_sm_mode_config(i2c_register_def_t *p_i2c_x);
-
 void i2c_fm_mode_config(i2c_register_def_t *p_i2c_x);
-
+void i2c_sm_mode_config(i2c_register_def_t *p_i2c_x);
 void i2c_own_addr_config(i2c_register_def_t *p_i2c_x, uint8_t own_addr);
 
 
 void i2c_scl_speed_config(i2c_register_def_t *p_i2c_x, i2c_speed_t fm_or_sm_mode, i2c_scl_freq_t scl_freq);
 
 void i2c_ack_config();
+void i2c_fm_duty_config(i2c_register_def_t *p_i2c_x, signal_state_t enable_disable);
 
 
 
