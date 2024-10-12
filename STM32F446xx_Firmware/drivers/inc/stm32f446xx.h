@@ -413,7 +413,29 @@ typedef struct
 #define I2C2_PCLK_DI()                                      ((RCC->RCC_APB1ENR)  &= ~(1<<22))
 #define I2C3_PCLK_DI()                                      ((RCC->RCC_APB1ENR)  &= ~(1<<23))
 
+#define I2C_SR1_SB                                         0
+#define I2C_SR1_ADDR                                       1
+#define I2C_SR1_BTF                                        2
+#define I2C_SR1_ADD10                                      3
+#define I2C_SR1_STOPF                                      4
+#define I2C_SR1_RXNE                                       6
+#define I2C_SR1_TXE                                        7
 
+
+#define I2C_FLAG_SB                                        (1 << I2C_SR1_SB)
+#define I2C_FLAG_ADDR                                      (1 << I2C_SR1_ADDR)
+#define I2C_FLAG_BTF                                       (1 << I2C_SR1_BTF)
+#define I2C_FLAG_ADD10                                     (1 << I2C_SR1_ADD10)
+#define I2C_FLAG_STOPF                                     (1 << I2C_SR1_STOPF)
+#define I2C_FLAG_RXNE                                      (1 << I2C_SR1_RXNE)
+#define I2C_FLAG_TXE                                       (1 << I2C_SR1_TXE)
+
+
+
+#define I2C_CR1_START                                           8  
+#define I2C_CR1_STOP                                            9  
+#define I2C_CR1_ACK                                             10  
+  
 
 
 /***********************************************************************************************/

@@ -103,10 +103,15 @@ void i2c_scl_speed_config(i2c_register_def_t *p_i2c_x, i2c_speed_t fm_or_sm_mode
     
     if ((fm_or_sm_mode == I2C_SPEED_STANDARD) && (scl_freq == I2C_SCL_FREQ_100KHZ))
     {
+        p_i2c_x->I2C_TRISE |= ((I2C_SM_RISE_TIME/1000000000UL) * (i2c_pclk1_freq_get())+1);
+
         p_i2c_x->I2C_CCR |= ((i2c_pclk1_freq_get())/(2 *(I2C_SCL_FREQ_100KHZ))) & (0xFFF);
     }
+    
     else if ((fm_or_sm_mode == I2C_SPEED_FAST) && (scl_freq == I2C_SCL_FREQ_400KHZ))
     {
+        p_i2c_x->I2C_TRISE |= ((I2C_FM_RISE_TIME/1000000000UL) * (i2c_pclk1_freq_get())+1);
+
         if ((p_i2c_x->I2C_CCR >> 14) & (0x01))
         {
             p_i2c_x->I2C_CCR |= ((i2c_pclk1_freq_get())/(3 *(I2C_SCL_FREQ_400KHZ))) & (0xFFF); // check logic
@@ -117,4 +122,54 @@ void i2c_scl_speed_config(i2c_register_def_t *p_i2c_x, i2c_speed_t fm_or_sm_mode
         }
         
     }
+}
+
+
+static void i2c_generate_start_condition(i2c_register_def_t *p_i2c_x)
+{
+   p_i2c_x->I2C_CR1 |= (1 << I2C_CR1_START); 
+}
+
+static void i2c_slave_addr_send(i2c_register_def_t *p_i2c_x, uint8_t slave_addr)
+{
+    slave_addr = slave_addr << 1;
+    slave_addr &= ~(1);
+    p_i2c_x->I2C_DR = slave_addr;
+
+}
+
+static void i2c_clear_addr_flag(i2c_register_def_t *p_i2c_x)
+{
+    uint32_t dummy_read = p_i2c_x->I2C_SR1;
+    dummy_read = p_i2c_x->I2C_SR2;
+    (void) dummy_read;
+}
+
+static void i2c_generate_stop_condition(i2c_register_def_t *p_i2c_x)
+{
+   p_i2c_x->I2C_CR1 |= (1 << I2C_CR1_STOP); 
+}
+
+void i2c_data_tx(i2c_register_def_t *p_i2c_x, uint8_t *p_tx_buffer, size_t size_of_data,  uint8_t slave_addr)
+{
+    i2c_generate_start_condition(p_i2c_x);
+
+    while (!((p_i2c_x->I2C_SR1) & I2C_FLAG_SB));
+    i2c_slave_addr_send(p_i2c_x, slave_addr);
+    while (!((p_i2c_x->I2C_SR1) & I2C_FLAG_ADDR));
+    i2c_clear_addr_flag(p_i2c_x);
+
+    while (size_of_data > 0)
+    {
+        while(!((p_i2c_x->I2C_SR1) & I2C_FLAG_TXE));
+        p_i2c_x->I2C_DR = *p_tx_buffer;
+        p_tx_buffer++;
+        size_of_data--;
+
+    }
+    while (!((p_i2c_x->I2C_SR1) & I2C_FLAG_TXE));
+    while (!((p_i2c_x->I2C_SR1) & I2C_FLAG_BTF));
+
+    i2c_generate_stop_condition(p_i2c_x);
+
 }

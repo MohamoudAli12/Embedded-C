@@ -10,10 +10,13 @@
 #define I2C_H
 
 #include "stm32f446xx.h"
+#include <stddef.h>
 
 #define I2C_CR1_PE                                         0
 #define I2C_CCR_FS                                         15
 
+#define I2C_FM_RISE_TIME                                   300 //nanosecond
+#define I2C_SM_RISE_TIME                                   1000  //nanosecond
 
 
 typedef enum 
@@ -52,9 +55,7 @@ void i2c_scl_speed_config(i2c_register_def_t *p_i2c_x, i2c_speed_t fm_or_sm_mode
 void i2c_ack_config();
 void i2c_fm_duty_config(i2c_register_def_t *p_i2c_x, signal_state_t enable_disable);
 
-
-
-
+void i2c_data_tx(i2c_register_def_t *p_i2c_x, uint8_t *p_tx_buffer, size_t size_of_data, uint8_t slave_addr);
 
 
 
