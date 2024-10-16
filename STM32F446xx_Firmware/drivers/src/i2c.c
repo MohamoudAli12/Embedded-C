@@ -1,7 +1,10 @@
 #include "i2c.h"
 
 
-
+i2c_handle_t i2c1_handle = {0};
+i2c_handle_t i2c1_handle = {0};
+i2c_handle_t i2c1_handle = {0};
+i2c_handle_t i2c1_handle = {0};
 
 void i2c_peripheral_enable(i2c_register_def_t *p_i2c_x)
 {
@@ -244,13 +247,68 @@ void i2c_data_rx(i2c_register_def_t *p_i2c_x, uint8_t *p_rx_buffer, size_t size_
 
             *p_rx_buffer = (uint8_t)p_i2c_x->I2C_DR;
             p_rx_buffer++;
-
-
-
         }
 
     }
 
     i2c_ack_config(p_i2c_x, ENABLE);
+
+}
+
+/*************************************************I2C INTERRUPT*********************************/
+i2c_interrupt_data_tx(i2c_handle_t *p_i2c_handle, i2c_register_def_t *p_i2c_x, uint8_t *p_tx_buffer, size_t size_of_data, uint8_t slave_addr, uint8_t repeated_start)
+{
+    if ((p_i2c_handle->tx_rx_state != I2C_BUSY_RX) && (p_i2c_handle->tx_rx_state != I2C_BUSY_TX))
+    {
+       p_i2c_handle->tx_buffer = p_tx_buffer;
+       p_i2c_handle->tx_length = size_of_data;
+       p_i2c_handle->tx_rx_state = I2C_BUSY_TX;
+       p_i2c_handle->device_addr = slave_addr;
+       p_i2c_handle->repeated_start = repeated_start;
+
+       // generate start condition
+
+       i2c_generate_start_condition(p_i2c_x);
+
+       // set ITBUFEN control bit
+       p_i2c_x->I2C_CR2 |= (1<< I2C_CR2_ITBUFEN);
+
+       //enable ITEVFEN
+       p_i2c_x->I2C_CR2 |= (1<< I2C_CR2_ITEVTEN);
+
+       // enable ITERREN
+       p_i2c_x->I2C_CR2 |= (1<< I2C_CR2_ITERREN);
+
+
+    }
+
+}
+
+
+i2c_interrupt_data_rx(i2c_handle_t *p_i2c_handle, i2c_register_def_t *p_i2c_x, uint8_t *p_rx_buffer, size_t size_of_data, uint8_t slave_addr, uint8_t repeated_start)
+{
+    if ((p_i2c_handle->tx_rx_state != I2C_BUSY_RX) && (p_i2c_handle->tx_rx_state != I2C_BUSY_TX))
+    {
+       p_i2c_handle->rx_buffer = p_rx_buffer;
+       p_i2c_handle->tx_length = size_of_data;
+       p_i2c_handle->tx_rx_state = I2C_BUSY_RX;
+       p_i2c_handle->device_addr = slave_addr;
+       p_i2c_handle->repeated_start = repeated_start;
+
+       // generate start condition
+
+       i2c_generate_start_condition(p_i2c_x);
+
+       // set ITBUFEN control bit
+       p_i2c_x->I2C_CR2 |= (1<< I2C_CR2_ITBUFEN);
+
+       //enable ITEVFEN
+       p_i2c_x->I2C_CR2 |= (1<< I2C_CR2_ITEVTEN);
+
+       // enable ITERREN
+       p_i2c_x->I2C_CR2 |= (1<< I2C_CR2_ITERREN);
+
+
+    }
 
 }

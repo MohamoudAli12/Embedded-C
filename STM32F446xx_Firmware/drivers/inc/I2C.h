@@ -41,6 +41,28 @@ typedef enum
 
 }i2c_scl_freq_t;
 
+typedef enum
+{
+    I2C_READY,
+    I2C_BUSY_TX,
+    I2C_BUSY_RX
+
+}i2c_state_t;
+
+typedef struct
+{
+    volatile uint8_t *tx_buffer;
+    volatile uint8_t *rx_buffer;
+    volatile size_t tx_length;
+    volatile size_t rx_length;
+    volatile i2c_state_t tx_rx_state;
+    volatile uint8_t device_addr;
+    volatile uint32_t rx_size;
+    volatile uint8_t repeated_start;
+}i2c_handle_t;
+
+
+
 void i2c_peripheral_enable(i2c_register_def_t *p_i2c_x);
 
 void i2c_peripheral_disable(i2c_register_def_t *p_i2c_x);

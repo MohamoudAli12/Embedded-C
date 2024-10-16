@@ -436,6 +436,12 @@ typedef struct
 #define I2C_CR1_STOP                                            9  
 #define I2C_CR1_ACK                                             10  
 #define I2C_CR1_PE                                              0
+
+#define I2C_CR2_ITBUFEN                                              10
+#define I2C_CR2_ITEVTEN                                              9
+#define I2C_CR2_ITERREN                                              8
+
+
 #define I2C_CCR_FS                                              15 
 #define I2C_CCR_DUTY                                            14 
 
