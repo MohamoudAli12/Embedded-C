@@ -1,43 +1,48 @@
 #include "i2c.h"
+static uint32_t i2c_pclk1_freq_get(void);
+static void i2c_generate_start_condition(i2c_register_def_t *p_i2c_x);
+static void i2c_slave_addr_write(i2c_register_def_t *p_i2c_x, uint8_t slave_addr);
+static void i2c_clear_addr_flag(i2c_register_def_t *p_i2c_x);
+static void i2c_generate_stop_condition(i2c_register_def_t *p_i2c_x);
 
 
 i2c_handle_t i2c1_handle = {0};
-i2c_handle_t i2c1_handle = {0};
-i2c_handle_t i2c1_handle = {0};
-i2c_handle_t i2c1_handle = {0};
+i2c_handle_t i2c2_handle = {0};
+i2c_handle_t i2c3_handle = {0};
+i2c_handle_t i2c4_handle = {0};
 
-void i2c_peripheral_enable(i2c_register_def_t *p_i2c_x)
+static void i2c_generate_start_condition(i2c_register_def_t *p_i2c_x)
 {
-    p_i2c_x->I2C_CR1 |= (1<<I2C_CR1_PE);
+   p_i2c_x->I2C_CR1 |= (1 << I2C_CR1_START); 
 }
 
-void i2c_peripheral_disable(i2c_register_def_t *p_i2c_x)
+static void i2c_slave_addr_write(i2c_register_def_t *p_i2c_x, uint8_t slave_addr)
 {
-    p_i2c_x->I2C_CR1 &= ~(1<<I2C_CR1_PE);
+    slave_addr = slave_addr << 1;
+    slave_addr &= ~(1);
+    p_i2c_x->I2C_DR = slave_addr;
+
 }
 
-void i2c_sm_mode_config(i2c_register_def_t *p_i2c_x)
+static void i2c_clear_addr_flag(i2c_register_def_t *p_i2c_x)
 {
-    p_i2c_x->I2C_CR2 &= ~(1<<I2C_CCR_FS);
+    uint32_t dummy_read = p_i2c_x->I2C_SR1;
+    dummy_read = p_i2c_x->I2C_SR2;
+    (void) dummy_read;
 }
 
-void i2c_fm_mode_config(i2c_register_def_t *p_i2c_x)
+static void i2c_generate_stop_condition(i2c_register_def_t *p_i2c_x)
 {
-    p_i2c_x->I2C_CR2 |= (1<<I2C_CCR_FS);
+   p_i2c_x->I2C_CR1 |= (1 << I2C_CR1_STOP); 
 }
 
-void i2c_ack_config(i2c_register_def_t *p_i2c_x, signal_state_t enable_disable)
+
+static void i2c_slave_addr_read(i2c_register_def_t *p_i2c_x, uint8_t slave_addr)
 {
-    if (enable_disable == ENABLE)
-    {
-        p_i2c_x->I2C_CR1 |= (1 << I2C_CR1_ACK);
+    slave_addr = slave_addr << 1;
+    slave_addr |= (1);
+    p_i2c_x->I2C_DR = slave_addr;
 
-    }
-    else if (enable_disable == DISABLE)
-    {
-        p_i2c_x->I2C_CR1 |= ~(1 << I2C_CR1_ACK);
-
-    }
 }
 
 static uint32_t i2c_pclk1_freq_get(void)
@@ -95,9 +100,45 @@ static uint32_t i2c_pclk1_freq_get(void)
 
 }
 
+
+void i2c_peripheral_enable(i2c_register_def_t *p_i2c_x)
+{
+    p_i2c_x->I2C_CR1 |= (1<<I2C_CR1_PE);
+}
+
+void i2c_peripheral_disable(i2c_register_def_t *p_i2c_x)
+{
+    p_i2c_x->I2C_CR1 &= ~(1<<I2C_CR1_PE);
+}
+
+void i2c_sm_mode_config(i2c_register_def_t *p_i2c_x)
+{
+    p_i2c_x->I2C_CR2 &= ~(1<<I2C_CCR_FS);
+}
+
+void i2c_fm_mode_config(i2c_register_def_t *p_i2c_x)
+{
+    p_i2c_x->I2C_CR2 |= (1<<I2C_CCR_FS);
+}
+
+void i2c_ack_config(i2c_register_def_t *p_i2c_x, signal_state_t enable_disable)
+{
+    if (enable_disable == ENABLE)
+    {
+        p_i2c_x->I2C_CR1 |= (1 << I2C_CR1_ACK);
+
+    }
+    else if (enable_disable == DISABLE)
+    {
+        p_i2c_x->I2C_CR1 |= ~(1 << I2C_CR1_ACK);
+
+    }
+}
+
+
 void i2c_cr2_freq_config(i2c_register_def_t *p_i2c_x)
 {
-    p_i2c_x->I2C_CR2 |= i2c_pclk1_freq_get()/(1000000UL) & (0x3F);
+    p_i2c_x->I2C_CR2 |= (i2c_pclk1_freq_get()/(1000000UL) & (0x3F));
 }
 
 void i2c_fm_duty_config(i2c_register_def_t *p_i2c_x, signal_state_t enable_disable)
@@ -141,32 +182,6 @@ void i2c_scl_speed_config(i2c_register_def_t *p_i2c_x, i2c_speed_t fm_or_sm_mode
     }
 }
 
-
-static void i2c_generate_start_condition(i2c_register_def_t *p_i2c_x)
-{
-   p_i2c_x->I2C_CR1 |= (1 << I2C_CR1_START); 
-}
-
-static void i2c_slave_addr_write(i2c_register_def_t *p_i2c_x, uint8_t slave_addr)
-{
-    slave_addr = slave_addr << 1;
-    slave_addr &= ~(1);
-    p_i2c_x->I2C_DR = slave_addr;
-
-}
-
-static void i2c_clear_addr_flag(i2c_register_def_t *p_i2c_x)
-{
-    uint32_t dummy_read = p_i2c_x->I2C_SR1;
-    dummy_read = p_i2c_x->I2C_SR2;
-    (void) dummy_read;
-}
-
-static void i2c_generate_stop_condition(i2c_register_def_t *p_i2c_x)
-{
-   p_i2c_x->I2C_CR1 |= (1 << I2C_CR1_STOP); 
-}
-
 void i2c_data_tx(i2c_register_def_t *p_i2c_x, uint8_t *p_tx_buffer, size_t size_of_data,  uint8_t slave_addr)
 {
     // 1. generate start condition
@@ -208,13 +223,7 @@ void i2c_data_tx(i2c_register_def_t *p_i2c_x, uint8_t *p_tx_buffer, size_t size_
     i2c_generate_stop_condition(p_i2c_x);
 
 }
-static void i2c_slave_addr_read(i2c_register_def_t *p_i2c_x, uint8_t slave_addr)
-{
-    slave_addr = slave_addr << 1;
-    slave_addr |= (1);
-    p_i2c_x->I2C_DR = slave_addr;
 
-}
 
 void i2c_data_rx(i2c_register_def_t *p_i2c_x, uint8_t *p_rx_buffer, size_t size_of_data, uint8_t slave_addr)
 {
@@ -256,9 +265,10 @@ void i2c_data_rx(i2c_register_def_t *p_i2c_x, uint8_t *p_rx_buffer, size_t size_
 }
 
 /*************************************************I2C INTERRUPT*********************************/
-i2c_interrupt_data_tx(i2c_handle_t *p_i2c_handle, i2c_register_def_t *p_i2c_x, uint8_t *p_tx_buffer, size_t size_of_data, uint8_t slave_addr, uint8_t repeated_start)
+uint8_t i2c_interrupt_data_tx(i2c_handle_t *p_i2c_handle, i2c_register_def_t *p_i2c_x, uint8_t *p_tx_buffer, size_t size_of_data, uint8_t slave_addr, uint8_t repeated_start)
 {
-    if ((p_i2c_handle->tx_rx_state != I2C_BUSY_RX) && (p_i2c_handle->tx_rx_state != I2C_BUSY_TX))
+    uint8_t i2c_bus_state = p_i2c_handle->tx_rx_state;
+    if ((i2c_bus_state != I2C_BUSY_RX) && (i2c_bus_state != I2C_BUSY_TX))
     {
        p_i2c_handle->tx_buffer = p_tx_buffer;
        p_i2c_handle->tx_length = size_of_data;
@@ -281,11 +291,12 @@ i2c_interrupt_data_tx(i2c_handle_t *p_i2c_handle, i2c_register_def_t *p_i2c_x, u
 
 
     }
+    return i2c_bus_state;
 
 }
 
 
-i2c_interrupt_data_rx(i2c_handle_t *p_i2c_handle, i2c_register_def_t *p_i2c_x, uint8_t *p_rx_buffer, size_t size_of_data, uint8_t slave_addr, uint8_t repeated_start)
+uint8_t i2c_interrupt_data_rx(i2c_handle_t *p_i2c_handle, i2c_register_def_t *p_i2c_x, uint8_t *p_rx_buffer, size_t size_of_data, uint8_t slave_addr, uint8_t repeated_start)
 {
     if ((p_i2c_handle->tx_rx_state != I2C_BUSY_RX) && (p_i2c_handle->tx_rx_state != I2C_BUSY_TX))
     {
