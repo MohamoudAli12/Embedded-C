@@ -130,7 +130,7 @@ void i2c_ack_config(i2c_register_def_t *p_i2c_x, signal_state_t enable_disable)
     }
     else if (enable_disable == DISABLE)
     {
-        p_i2c_x->I2C_CR1 |= ~(1 << I2C_CR1_ACK);
+        p_i2c_x->I2C_CR1 &= ~(1 << I2C_CR1_ACK);
 
     }
 }
@@ -180,6 +180,15 @@ void i2c_scl_speed_config(i2c_register_def_t *p_i2c_x, i2c_speed_t fm_or_sm_mode
         }
         
     }
+}
+
+void i2c_7bit_own_addr_config(i2c_register_def_t *p_i2c_x, uint8_t own_addr_7bit)
+{
+    p_i2c_x->I2C_OAR1 &= ~(0x7F<<1);
+    p_i2c_x->I2C_OAR1 &= ~(1<<I2C_OAR1_ADD_MODE);
+    p_i2c_x->I2C_OAR1 |= (1<<I2C_OAR1_BIT_14);
+    p_i2c_x->I2C_OAR1 |= (own_addr_7bit<<1);
+
 }
 
 void i2c_data_tx(i2c_register_def_t *p_i2c_x, uint8_t *p_tx_buffer, size_t size_of_data,  uint8_t slave_addr)
@@ -298,7 +307,9 @@ uint8_t i2c_interrupt_data_tx(i2c_handle_t *p_i2c_handle, i2c_register_def_t *p_
 
 uint8_t i2c_interrupt_data_rx(i2c_handle_t *p_i2c_handle, i2c_register_def_t *p_i2c_x, uint8_t *p_rx_buffer, size_t size_of_data, uint8_t slave_addr, uint8_t repeated_start)
 {
-    if ((p_i2c_handle->tx_rx_state != I2C_BUSY_RX) && (p_i2c_handle->tx_rx_state != I2C_BUSY_TX))
+    uint8_t i2c_bus_state = p_i2c_handle->tx_rx_state;
+
+    if ((i2c_bus_state != I2C_BUSY_RX) && (i2c_bus_state != I2C_BUSY_TX))
     {
        p_i2c_handle->rx_buffer = p_rx_buffer;
        p_i2c_handle->tx_length = size_of_data;
@@ -319,7 +330,7 @@ uint8_t i2c_interrupt_data_rx(i2c_handle_t *p_i2c_handle, i2c_register_def_t *p_
        // enable ITERREN
        p_i2c_x->I2C_CR2 |= (1<< I2C_CR2_ITERREN);
 
-
     }
+    return i2c_bus_state;
 
 }

@@ -437,13 +437,16 @@ typedef struct
 #define I2C_CR1_ACK                                             10  
 #define I2C_CR1_PE                                              0
 
-#define I2C_CR2_ITBUFEN                                              10
-#define I2C_CR2_ITEVTEN                                              9
-#define I2C_CR2_ITERREN                                              8
+#define I2C_CR2_ITBUFEN                                         10
+#define I2C_CR2_ITEVTEN                                         9
+#define I2C_CR2_ITERREN                                         8
 
 
 #define I2C_CCR_FS                                              15 
 #define I2C_CCR_DUTY                                            14 
+
+#define I2C_OAR1_ADD_MODE                                       15
+#define I2C_OAR1_BIT_14                                         14 
 
 
 /***********************************************************************************************/
