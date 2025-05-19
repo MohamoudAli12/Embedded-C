@@ -1,9 +1,21 @@
 #include "i2c.h"
+#include <stdbool.h>
+
+                                
+
+
 static uint32_t i2c_pclk1_freq_get(void);
 static void i2c_generate_start_condition(i2c_register_def_t *p_i2c_x);
 static void i2c_slave_addr_write(i2c_register_def_t *p_i2c_x, uint8_t slave_addr);
+static void i2c_slave_addr_read(i2c_register_def_t *p_i2c_x, uint8_t slave_addr);
 static void i2c_clear_addr_flag(i2c_register_def_t *p_i2c_x);
 static void i2c_generate_stop_condition(i2c_register_def_t *p_i2c_x);
+static bool sb_interrupt_event(i2c_register_def_t *p_i2c_x);
+static bool addr_interrupt_event(i2c_register_def_t *p_i2c_x);
+static bool btf_interrupt_event(i2c_register_def_t *p_i2c_x);
+static bool stopf_interrupt_event(i2c_register_def_t *p_i2c_x);
+static bool txe_interrupt_event(i2c_register_def_t *p_i2c_x);
+static bool rxne_interrupt_event(i2c_register_def_t *p_i2c_x);
 
 
 i2c_handle_t i2c1_handle = {0};
@@ -21,7 +33,6 @@ static void i2c_slave_addr_write(i2c_register_def_t *p_i2c_x, uint8_t slave_addr
     slave_addr = slave_addr << 1;
     slave_addr &= ~(1);
     p_i2c_x->I2C_DR = slave_addr;
-
 }
 
 static void i2c_clear_addr_flag(i2c_register_def_t *p_i2c_x)
@@ -99,6 +110,53 @@ static uint32_t i2c_pclk1_freq_get(void)
     return pclk1_value_in_hz;
 
 }
+static bool sb_interrupt_event(i2c_register_def_t *p_i2c_x)
+{
+    bool sb_flag_set = ((p_i2c_x->I2C_SR1)&(1<<I2C_SR1_SB))!= 0;
+    bool itevten_flag_set = ((p_i2c_x->I2C_CR2)&(1<<I2C_CR2_ITEVTEN))!= 0;
+    return sb_flag_set && itevten_flag_set;
+
+}
+
+static bool addr_interrupt_event(i2c_register_def_t *p_i2c_x)
+{
+    bool addr_flag_set = ((p_i2c_x->I2C_SR1)&(1<<I2C_SR1_ADDR))!= 0;
+    bool itevten_flag_set = ((p_i2c_x->I2C_CR2)&(1<<I2C_CR2_ITEVTEN))!= 0;
+    return addr_flag_set && itevten_flag_set;
+
+}
+static bool btf_interrupt_event(i2c_register_def_t *p_i2c_x)
+{
+    bool btf_flag_set = ((p_i2c_x->I2C_SR1)&(1<<I2C_SR1_BTF))!= 0;
+    bool itevten_flag_set = ((p_i2c_x->I2C_CR2)&(1<<I2C_CR2_ITEVTEN))!= 0;
+    return btf_flag_set && itevten_flag_set;
+
+}
+static bool stopf_interrupt_event(i2c_register_def_t *p_i2c_x)
+{
+    bool stopf_flag_set = ((p_i2c_x->I2C_SR1)&(1<<I2C_SR1_STOPF))!= 0;
+    bool itevten_flag_set = ((p_i2c_x->I2C_CR2)&(1<<I2C_CR2_ITEVTEN))!= 0;
+    return stopf_flag_set && itevten_flag_set;
+
+}
+
+static bool txe_interrupt_event(i2c_register_def_t *p_i2c_x)
+{
+    bool txe_flag_set = ((p_i2c_x->I2C_SR1)&(1<<I2C_SR1_TXE))!= 0;
+    bool itevten_flag_set = ((p_i2c_x->I2C_CR2)&(1<<I2C_CR2_ITEVTEN))!= 0;
+    bool itbufen_flag_set = ((p_i2c_x->I2C_CR2)&(1<<I2C_CR2_ITBUFEN))!= 0;
+    return txe_flag_set && itevten_flag_set && itbufen_flag_set;
+
+}
+static bool rxne_interrupt_event(i2c_register_def_t *p_i2c_x)
+{
+    bool rxne_flag_set = ((p_i2c_x->I2C_SR1)&(1<<I2C_SR1_RXNE))!= 0;
+    bool itevten_flag_set = ((p_i2c_x->I2C_CR2)&(1<<I2C_CR2_ITEVTEN))!= 0;
+    bool itbufen_flag_set = ((p_i2c_x->I2C_CR2)&(1<<I2C_CR2_ITBUFEN))!= 0;
+    return rxne_flag_set && itevten_flag_set && itbufen_flag_set;
+
+}
+
 
 
 void i2c_peripheral_enable(i2c_register_def_t *p_i2c_x)
@@ -332,5 +390,55 @@ uint8_t i2c_interrupt_data_rx(i2c_handle_t *p_i2c_handle, i2c_register_def_t *p_
 
     }
     return i2c_bus_state;
+
+}
+
+void i2c_event_irq_handler(i2c_handle_t *p_i2c_handle, i2c_register_def_t *p_i2c_x)
+{
+    //Handle SB flag interrupt
+
+    if(sb_interrupt_event(p_i2c_x))
+    {
+
+    }
+
+    // handle ADDR
+    if (addr_interrupt_event(p_i2c_x))
+    {
+
+    }
+
+    // handle BTF
+
+    if (btf_interrupt_event(p_i2c_x))
+    {
+
+    }
+
+    //handle stopf
+    if(stopf_interrupt_event(p_i2c_x))
+    {
+
+    }
+
+    //handle txe
+    if(txe_interrupt_event(p_i2c_x))
+    {
+
+    }
+
+    // handle rxne
+    if(rxne_interrupt_event(p_i2c_x))
+    {
+
+    }
+
+}
+
+void i2c_error_irq_handler(i2c_handle_t *p_i2c_handle, i2c_register_def_t *p_i2c_x)
+{
+
+
+
 
 }
