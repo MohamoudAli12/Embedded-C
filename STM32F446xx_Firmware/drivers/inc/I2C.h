@@ -49,6 +49,12 @@ typedef enum
 
 }i2c_state_t;
 
+typedef enum
+{
+    I2C_REPEATED_START_DISABLED,
+    I2C_REPEATED_START_ENABLED
+}i2c_repeated_start_t;
+
 typedef struct
 {
     volatile uint8_t *tx_buffer;
@@ -56,9 +62,9 @@ typedef struct
     volatile size_t tx_length;
     volatile size_t rx_length;
     volatile i2c_state_t tx_rx_state;
-    volatile uint8_t device_addr;
+    volatile uint8_t slave_addr;
     volatile uint32_t rx_size;
-    volatile uint8_t repeated_start;
+    volatile i2c_repeated_start_t repeated_start;
 }i2c_handle_t;
 
 
@@ -73,8 +79,8 @@ void i2c_ack_config(i2c_register_def_t *p_i2c_x, signal_state_t enable_disable);
 void i2c_fm_duty_config(i2c_register_def_t *p_i2c_x, signal_state_t enable_disable);
 void i2c_data_tx(i2c_register_def_t *p_i2c_x, uint8_t *p_tx_buffer, size_t size_of_data, uint8_t slave_addr);
 void i2c_data_rx(i2c_register_def_t *p_i2c_x, uint8_t *p_rx_buffer, size_t size_of_data, uint8_t slave_addr);
-uint8_t i2c_interrupt_data_tx(i2c_handle_t *p_i2c_handle, i2c_register_def_t *p_i2c_x, uint8_t *p_tx_buffer, size_t size_of_data, uint8_t slave_addr, uint8_t repeated_start);
-uint8_t i2c_interrupt_data_rx(i2c_handle_t *p_i2c_handle, i2c_register_def_t *p_i2c_x, uint8_t *p_rx_buffer, size_t size_of_data, uint8_t slave_addr, uint8_t repeated_start);
+uint8_t i2c_interrupt_data_tx(i2c_handle_t *p_i2c_handle, i2c_register_def_t *p_i2c_x, uint8_t *p_tx_buffer, size_t size_of_data, uint8_t slave_addr, i2c_repeated_start_t repeated_start);
+uint8_t i2c_interrupt_data_rx(i2c_handle_t *p_i2c_handle, i2c_register_def_t *p_i2c_x, uint8_t *p_rx_buffer, size_t size_of_data, uint8_t slave_addr, i2c_repeated_start_t repeated_start);
 void i2c_event_irq_handler(i2c_handle_t *p_i2c_handle, i2c_register_def_t *p_i2c_x);
 void i2c_error_irq_handler(i2c_handle_t *p_i2c_handle, i2c_register_def_t *p_i2c_x);
 

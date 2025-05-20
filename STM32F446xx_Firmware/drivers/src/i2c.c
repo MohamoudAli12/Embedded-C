@@ -28,6 +28,11 @@ static void i2c_generate_start_condition(i2c_register_def_t *p_i2c_x)
    p_i2c_x->I2C_CR1 |= (1 << I2C_CR1_START); 
 }
 
+static void i2c_generate_stop_condition(i2c_register_def_t *p_i2c_x)
+{
+   p_i2c_x->I2C_CR1 |= (1 << I2C_CR1_STOP); 
+}
+
 static void i2c_slave_addr_write(i2c_register_def_t *p_i2c_x, uint8_t slave_addr)
 {
     slave_addr = slave_addr << 1;
@@ -40,11 +45,6 @@ static void i2c_clear_addr_flag(i2c_register_def_t *p_i2c_x)
     uint32_t dummy_read = p_i2c_x->I2C_SR1;
     dummy_read = p_i2c_x->I2C_SR2;
     (void) dummy_read;
-}
-
-static void i2c_generate_stop_condition(i2c_register_def_t *p_i2c_x)
-{
-   p_i2c_x->I2C_CR1 |= (1 << I2C_CR1_STOP); 
 }
 
 
@@ -332,7 +332,7 @@ void i2c_data_rx(i2c_register_def_t *p_i2c_x, uint8_t *p_rx_buffer, size_t size_
 }
 
 /*************************************************I2C INTERRUPT*********************************/
-uint8_t i2c_interrupt_data_tx(i2c_handle_t *p_i2c_handle, i2c_register_def_t *p_i2c_x, uint8_t *p_tx_buffer, size_t size_of_data, uint8_t slave_addr, uint8_t repeated_start)
+uint8_t i2c_interrupt_data_tx(i2c_handle_t *p_i2c_handle, i2c_register_def_t *p_i2c_x, uint8_t *p_tx_buffer, size_t size_of_data, uint8_t slave_addr, i2c_repeated_start_t repeated_start)
 {
     uint8_t i2c_bus_state = p_i2c_handle->tx_rx_state;
     if ((i2c_bus_state != I2C_BUSY_RX) && (i2c_bus_state != I2C_BUSY_TX))
@@ -340,7 +340,7 @@ uint8_t i2c_interrupt_data_tx(i2c_handle_t *p_i2c_handle, i2c_register_def_t *p_
        p_i2c_handle->tx_buffer = p_tx_buffer;
        p_i2c_handle->tx_length = size_of_data;
        p_i2c_handle->tx_rx_state = I2C_BUSY_TX;
-       p_i2c_handle->device_addr = slave_addr;
+       p_i2c_handle->slave_addr = slave_addr;
        p_i2c_handle->repeated_start = repeated_start;
 
        // generate start condition
@@ -363,16 +363,16 @@ uint8_t i2c_interrupt_data_tx(i2c_handle_t *p_i2c_handle, i2c_register_def_t *p_
 }
 
 
-uint8_t i2c_interrupt_data_rx(i2c_handle_t *p_i2c_handle, i2c_register_def_t *p_i2c_x, uint8_t *p_rx_buffer, size_t size_of_data, uint8_t slave_addr, uint8_t repeated_start)
+uint8_t i2c_interrupt_data_rx(i2c_handle_t *p_i2c_handle, i2c_register_def_t *p_i2c_x, uint8_t *p_rx_buffer, size_t size_of_data, uint8_t slave_addr, i2c_repeated_start_t repeated_start)
 {
     uint8_t i2c_bus_state = p_i2c_handle->tx_rx_state;
 
     if ((i2c_bus_state != I2C_BUSY_RX) && (i2c_bus_state != I2C_BUSY_TX))
     {
        p_i2c_handle->rx_buffer = p_rx_buffer;
-       p_i2c_handle->tx_length = size_of_data;
+       p_i2c_handle->rx_length = size_of_data;
        p_i2c_handle->tx_rx_state = I2C_BUSY_RX;
-       p_i2c_handle->device_addr = slave_addr;
+       p_i2c_handle->slave_addr = slave_addr;
        p_i2c_handle->repeated_start = repeated_start;
 
        // generate start condition
@@ -399,19 +399,50 @@ void i2c_event_irq_handler(i2c_handle_t *p_i2c_handle, i2c_register_def_t *p_i2c
 
     if(sb_interrupt_event(p_i2c_x))
     {
+        if(p_i2c_handle->tx_rx_state == I2C_BUSY_TX)
+        {
+            i2c_slave_addr_write(p_i2c_x, p_i2c_handle->slave_addr);
+        }
+        else if (p_i2c_handle->tx_rx_state == I2C_BUSY_RX)
+        {
+            i2c_slave_addr_read(p_i2c_x, p_i2c_handle->slave_addr);
+        }
 
     }
 
     // handle ADDR
     if (addr_interrupt_event(p_i2c_x))
     {
+        i2c_clear_addr_flag(p_i2c_x);
 
     }
 
-    // handle BTF
+    // handle BTF (byte transfer finished)
 
     if (btf_interrupt_event(p_i2c_x))
     {
+        if (p_i2c_handle->tx_rx_state == I2C_BUSY_TX)
+        {
+            // lets make sure the txe is also set
+            if(p_i2c_x->I2C_SR1 & I2C_FLAG_TXE)
+            {
+                // generate stop condition if repeat start is disabled
+                if(p_i2c_handle->repeated_start == I2C_REPEATED_START_DISABLED)
+                {
+                    i2c_generate_stop_condition(p_i2c_x);
+                }
+                
+
+                // reset all members of handle
+
+                i2c_close_tx();
+
+
+                // notify application about transmission complete using EventCallback TODO
+
+            }
+            
+        }
 
     }
 
