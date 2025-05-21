@@ -421,6 +421,8 @@ typedef struct
 #define I2C_SR1_RXNE                                       6
 #define I2C_SR1_TXE                                        7
 
+#define I2C_SR2_MSL                                        0
+
 
 #define I2C_FLAG_SB                                        (1 << I2C_SR1_SB)
 #define I2C_FLAG_ADDR                                      (1 << I2C_SR1_ADDR)

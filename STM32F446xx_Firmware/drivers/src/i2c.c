@@ -10,12 +10,14 @@ static void i2c_slave_addr_write(i2c_register_def_t *p_i2c_x, uint8_t slave_addr
 static void i2c_slave_addr_read(i2c_register_def_t *p_i2c_x, uint8_t slave_addr);
 static void i2c_clear_addr_flag(i2c_register_def_t *p_i2c_x);
 static void i2c_generate_stop_condition(i2c_register_def_t *p_i2c_x);
-static bool sb_interrupt_event(i2c_register_def_t *p_i2c_x);
-static bool addr_interrupt_event(i2c_register_def_t *p_i2c_x);
-static bool btf_interrupt_event(i2c_register_def_t *p_i2c_x);
-static bool stopf_interrupt_event(i2c_register_def_t *p_i2c_x);
-static bool txe_interrupt_event(i2c_register_def_t *p_i2c_x);
-static bool rxne_interrupt_event(i2c_register_def_t *p_i2c_x);
+static bool i2c_sb_interrupt_event(i2c_register_def_t *p_i2c_x);
+static bool i2c_addr_interrupt_event(i2c_register_def_t *p_i2c_x);
+static bool i2c_btf_interrupt_event(i2c_register_def_t *p_i2c_x);
+static bool i2c_stopf_interrupt_event(i2c_register_def_t *p_i2c_x);
+static bool i2c_txe_interrupt_event(i2c_register_def_t *p_i2c_x);
+static bool i2c_rxne_interrupt_event(i2c_register_def_t *p_i2c_x);
+static bool i2c_is_master(i2c_register_def_t *p_i2c_x);
+static bool i2c_is_slave(i2c_register_def_t *p_i2c_x);
 
 
 i2c_handle_t i2c1_handle = {0};
@@ -40,11 +42,40 @@ static void i2c_slave_addr_write(i2c_register_def_t *p_i2c_x, uint8_t slave_addr
     p_i2c_x->I2C_DR = slave_addr;
 }
 
-static void i2c_clear_addr_flag(i2c_register_def_t *p_i2c_x)
+static void i2c_clear_addr_flag(i2c_handle_t *p_i2c_handle, i2c_register_def_t *p_i2c_x)
 {
-    uint32_t dummy_read = p_i2c_x->I2C_SR1;
-    dummy_read = p_i2c_x->I2C_SR2;
-    (void) dummy_read;
+    uint32_t dummy_read;
+    //check device mode
+    if(i2c_is_master(p_i2c_x))
+    {
+        if(p_i2c_handle->tx_rx_state == I2C_BUSY_RX)
+        {
+            if(p_i2c_handle->rx_size == 1)
+            {
+                //disable the ack
+                i2c_ack_config(p_i2c_x, DISABLE);
+
+                //clear addr flag by readeing SR1 and SR2
+                dummy_read = p_i2c_x->I2C_SR1;
+                dummy_read = p_i2c_x->I2C_SR2;
+                (void) dummy_read;
+
+            }
+        }
+        else
+        {
+            dummy_read = p_i2c_x->I2C_SR1;
+            dummy_read = p_i2c_x->I2C_SR2;
+            (void) dummy_read;
+        }
+
+    }
+    else // device is in slave mode just clear the addr flag
+    {
+        dummy_read = p_i2c_x->I2C_SR1;
+        dummy_read = p_i2c_x->I2C_SR2;
+        (void) dummy_read;
+    }
 }
 
 
@@ -157,6 +188,16 @@ static bool rxne_interrupt_event(i2c_register_def_t *p_i2c_x)
 
 }
 
+static bool i2c_is_master(i2c_register_def_t *p_i2c_x)
+{
+    return ((p_i2c_x->I2C_SR2) & (1 << I2C_SR2_MSL) == 1);
+
+}
+static bool i2c_is_slave(i2c_register_def_t *p_i2c_x)
+{
+    return ((p_i2c_x->I2C_SR2) & (1 << I2C_SR2_MSL) == 0);
+}
+
 
 
 void i2c_peripheral_enable(i2c_register_def_t *p_i2c_x)
@@ -240,12 +281,12 @@ void i2c_scl_speed_config(i2c_register_def_t *p_i2c_x, i2c_speed_t fm_or_sm_mode
     }
 }
 
-void i2c_7bit_own_addr_config(i2c_register_def_t *p_i2c_x, uint8_t own_addr_7bit)
+void i2c_7bit_own_addr_config(i2c_register_def_t *p_i2c_x, uint8_t _7bit_own_addr)
 {
     p_i2c_x->I2C_OAR1 &= ~(0x7F<<1);
     p_i2c_x->I2C_OAR1 &= ~(1<<I2C_OAR1_ADD_MODE);
     p_i2c_x->I2C_OAR1 |= (1<<I2C_OAR1_BIT_14);
-    p_i2c_x->I2C_OAR1 |= (own_addr_7bit<<1);
+    p_i2c_x->I2C_OAR1 |= (_7bit_own_addr<<1);
 
 }
 
@@ -449,18 +490,55 @@ void i2c_event_irq_handler(i2c_handle_t *p_i2c_handle, i2c_register_def_t *p_i2c
     //handle stopf
     if(stopf_interrupt_event(p_i2c_x))
     {
-
+        // clear stopf. to clear stopf read SR1 register and write to CR1 register
+        // SR1 register is read by stopf_interrupt_event, we just need to write to CR1
+        p_i2c_x->I2C_CR1 |= 0x0000;
     }
 
     //handle txe
     if(txe_interrupt_event(p_i2c_x))
     {
+        if(i2c_is_master(p_i2c_x))
+        {
+            if(p_i2c_handle->tx_rx_state == I2C_BUSY_TX)
+            {
+                if(p_i2c_handle->tx_length > 0)
+                {
+                    p_i2c_x->I2C_DR = *(p_i2c_handle->tx_buffer);
+                    p_i2c_handle->tx_length--;
+                    p_i2c_handle->tx_buffer++;
+
+                }
+            }
+        }
 
     }
 
     // handle rxne
     if(rxne_interrupt_event(p_i2c_x))
     {
+        if(p_i2c_handle->tx_rx_state == I2C_BUSY_RX)
+        {
+            if(p_i2c_handle->rx_size == 1)
+            {
+                *p_i2c_handle->rx_buffer = p_i2c_x->I2C_DR;
+                p_i2c_handle->rx_length--;  
+            }
+            if(p_i2c_handle->rx_size > 1)
+            {
+                if (p_i2c_handle->rx_length == 2)
+                {
+                    //clear ack bit
+                    i2c_ack_config(p_i2c_x,DISABLE);
+
+                }
+                *p_i2c_handle->rx_buffer = p_i2c_x->I2C_DR;
+                p_i2c_handle->rx_buffer++;
+                p_i2c_handle->rx_length--;
+            }
+
+
+        }
 
     }
 
