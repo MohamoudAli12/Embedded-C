@@ -8,7 +8,7 @@ static uint32_t i2c_pclk1_freq_get(void);
 static void i2c_generate_start_condition(i2c_register_def_t *p_i2c_x);
 static void i2c_slave_addr_write(i2c_register_def_t *p_i2c_x, uint8_t slave_addr);
 static void i2c_slave_addr_read(i2c_register_def_t *p_i2c_x, uint8_t slave_addr);
-static void i2c_clear_addr_flag(i2c_register_def_t *p_i2c_x);
+static void i2c_clear_addr_flag(i2c_handle_t *p_i2c_handle, i2c_register_def_t *p_i2c_x);
 static void i2c_generate_stop_condition(i2c_register_def_t *p_i2c_x);
 static bool i2c_sb_interrupt_event(i2c_register_def_t *p_i2c_x);
 static bool i2c_addr_interrupt_event(i2c_register_def_t *p_i2c_x);
@@ -18,6 +18,19 @@ static bool i2c_txe_interrupt_event(i2c_register_def_t *p_i2c_x);
 static bool i2c_rxne_interrupt_event(i2c_register_def_t *p_i2c_x);
 static bool i2c_is_master(i2c_register_def_t *p_i2c_x);
 static bool i2c_is_slave(i2c_register_def_t *p_i2c_x);
+static void i2c_close_tx(i2c_handle_t *p_i2c_handle, i2c_register_def_t *p_i2c_x);
+static void i2c_close_rx(i2c_handle_t *p_i2c_handle, i2c_register_def_t *p_i2c_x);
+static bool berr_interrupt_error(i2c_register_def_t *p_i2c_x);
+static bool arlo_interrupt_error(i2c_register_def_t *p_i2c_x);
+static bool af_interrupt_error(i2c_register_def_t *p_i2c_x);
+static bool ovr_interrupt_error(i2c_register_def_t *p_i2c_x);
+static bool timeout_interrupt_error(i2c_register_def_t *p_i2c_x);
+
+
+__weak void i2c_application_event_callback(i2c_register_def_t *p_i2c_x, i2c_events_t event)
+{
+
+}
 
 
 i2c_handle_t i2c1_handle = {0};
@@ -50,7 +63,7 @@ static void i2c_clear_addr_flag(i2c_handle_t *p_i2c_handle, i2c_register_def_t *
     {
         if(p_i2c_handle->tx_rx_state == I2C_BUSY_RX)
         {
-            if(p_i2c_handle->rx_size == 1)
+            if(p_i2c_handle->rx_total_size == 1)
             {
                 //disable the ack
                 i2c_ack_config(p_i2c_x, DISABLE);
@@ -143,7 +156,7 @@ static uint32_t i2c_pclk1_freq_get(void)
 }
 static bool sb_interrupt_event(i2c_register_def_t *p_i2c_x)
 {
-    bool sb_flag_set = ((p_i2c_x->I2C_SR1)&(1<<I2C_SR1_SB))!= 0;
+    bool sb_flag_set = ((p_i2c_x->I2C_SR1) & I2C_FLAG_SB)!= 0;
     bool itevten_flag_set = ((p_i2c_x->I2C_CR2)&(1<<I2C_CR2_ITEVTEN))!= 0;
     return sb_flag_set && itevten_flag_set;
 
@@ -151,21 +164,21 @@ static bool sb_interrupt_event(i2c_register_def_t *p_i2c_x)
 
 static bool addr_interrupt_event(i2c_register_def_t *p_i2c_x)
 {
-    bool addr_flag_set = ((p_i2c_x->I2C_SR1)&(1<<I2C_SR1_ADDR))!= 0;
+    bool addr_flag_set = ((p_i2c_x->I2C_SR1)& I2C_FLAG_ADDR)!= 0;
     bool itevten_flag_set = ((p_i2c_x->I2C_CR2)&(1<<I2C_CR2_ITEVTEN))!= 0;
     return addr_flag_set && itevten_flag_set;
 
 }
 static bool btf_interrupt_event(i2c_register_def_t *p_i2c_x)
 {
-    bool btf_flag_set = ((p_i2c_x->I2C_SR1)&(1<<I2C_SR1_BTF))!= 0;
+    bool btf_flag_set = ((p_i2c_x->I2C_SR1)& I2C_FLAG_BTF)!= 0;
     bool itevten_flag_set = ((p_i2c_x->I2C_CR2)&(1<<I2C_CR2_ITEVTEN))!= 0;
     return btf_flag_set && itevten_flag_set;
 
 }
 static bool stopf_interrupt_event(i2c_register_def_t *p_i2c_x)
 {
-    bool stopf_flag_set = ((p_i2c_x->I2C_SR1)&(1<<I2C_SR1_STOPF))!= 0;
+    bool stopf_flag_set = ((p_i2c_x->I2C_SR1)& I2C_FLAG_STOPF)!= 0;
     bool itevten_flag_set = ((p_i2c_x->I2C_CR2)&(1<<I2C_CR2_ITEVTEN))!= 0;
     return stopf_flag_set && itevten_flag_set;
 
@@ -173,7 +186,7 @@ static bool stopf_interrupt_event(i2c_register_def_t *p_i2c_x)
 
 static bool txe_interrupt_event(i2c_register_def_t *p_i2c_x)
 {
-    bool txe_flag_set = ((p_i2c_x->I2C_SR1)&(1<<I2C_SR1_TXE))!= 0;
+    bool txe_flag_set = ((p_i2c_x->I2C_SR1) & I2C_FLAG_TXE)!= 0;
     bool itevten_flag_set = ((p_i2c_x->I2C_CR2)&(1<<I2C_CR2_ITEVTEN))!= 0;
     bool itbufen_flag_set = ((p_i2c_x->I2C_CR2)&(1<<I2C_CR2_ITBUFEN))!= 0;
     return txe_flag_set && itevten_flag_set && itbufen_flag_set;
@@ -181,12 +194,53 @@ static bool txe_interrupt_event(i2c_register_def_t *p_i2c_x)
 }
 static bool rxne_interrupt_event(i2c_register_def_t *p_i2c_x)
 {
-    bool rxne_flag_set = ((p_i2c_x->I2C_SR1)&(1<<I2C_SR1_RXNE))!= 0;
+    bool rxne_flag_set = ((p_i2c_x->I2C_SR1) & I2C_FLAG_RXNE)!= 0;
     bool itevten_flag_set = ((p_i2c_x->I2C_CR2)&(1<<I2C_CR2_ITEVTEN))!= 0;
     bool itbufen_flag_set = ((p_i2c_x->I2C_CR2)&(1<<I2C_CR2_ITBUFEN))!= 0;
     return rxne_flag_set && itevten_flag_set && itbufen_flag_set;
 
 }
+
+static bool berr_interrupt_error(i2c_register_def_t *p_i2c_x)
+{
+    bool berr_flag_set = ((p_i2c_x->I2C_SR1) & I2C_FLAG_BERR)!= 0;
+    bool iterren_flag_set = ((p_i2c_x->I2C_CR2)&(1<<I2C_CR2_ITERREN))!= 0;
+    return berr_flag_set && iterren_flag_set;
+
+}
+
+static bool arlo_interrupt_error(i2c_register_def_t *p_i2c_x)
+{
+    bool arlo_flag_set = ((p_i2c_x->I2C_SR1)& I2C_FLAG_ARLO)!= 0;
+    bool iterren_flag_set = ((p_i2c_x->I2C_CR2)&(1<<I2C_CR2_ITERREN))!= 0;
+    return arlo_flag_set && iterren_flag_set;
+
+}
+
+static bool af_interrupt_error(i2c_register_def_t *p_i2c_x)
+{
+    bool af_flag_set = ((p_i2c_x->I2C_SR1)& I2C_FLAG_AF)!= 0;
+    bool iterren_flag_set = ((p_i2c_x->I2C_CR2)&(1<<I2C_CR2_ITERREN))!= 0;
+    return af_flag_set && iterren_flag_set;
+
+}
+
+static bool ovr_interrupt_error(i2c_register_def_t *p_i2c_x)
+{
+    bool ovr_flag_set = ((p_i2c_x->I2C_SR1)& I2C_FLAG_OVR)!= 0;
+    bool iterren_flag_set = ((p_i2c_x->I2C_CR2)&(1<<I2C_CR2_ITERREN))!= 0;
+    return ovr_flag_set && iterren_flag_set;
+
+}
+static bool timeout_interrupt_error(i2c_register_def_t *p_i2c_x)
+{
+    bool timeout_flag_set = ((p_i2c_x->I2C_SR1)& I2C_FLAG_TIMEOUT)!= 0;
+    bool iterren_flag_set = ((p_i2c_x->I2C_CR2)&(1<<I2C_CR2_ITERREN))!= 0;
+    return timeout_flag_set && iterren_flag_set;
+
+}
+
+
 
 static bool i2c_is_master(i2c_register_def_t *p_i2c_x)
 {
@@ -196,6 +250,38 @@ static bool i2c_is_master(i2c_register_def_t *p_i2c_x)
 static bool i2c_is_slave(i2c_register_def_t *p_i2c_x)
 {
     return ((p_i2c_x->I2C_SR2) & (1 << I2C_SR2_MSL) == 0);
+}
+
+
+static void i2c_close_tx(i2c_handle_t *p_i2c_handle, i2c_register_def_t *p_i2c_x)
+{
+    //disable ITBUFEN
+    p_i2c_x->I2C_CR2 &= ~(1 << I2C_CR2_ITBUFEN);
+
+    //disable ITEVEN
+    p_i2c_x->I2C_CR2 &= ~(1 << I2C_CR2_ITEVTEN);
+
+    //reset / clear members of i2c handle
+    p_i2c_handle->tx_rx_state = I2C_READY;
+    p_i2c_handle->tx_buffer = NULL;
+    p_i2c_handle->tx_length = 0;
+
+}
+static void i2c_close_rx(i2c_handle_t *p_i2c_handle, i2c_register_def_t *p_i2c_x)
+{
+    //disable ITBUFEN
+    p_i2c_x->I2C_CR2 &= ~(1 << I2C_CR2_ITBUFEN);
+
+    //disable ITEVEN
+    p_i2c_x->I2C_CR2 &= ~(1 << I2C_CR2_ITEVTEN);
+
+    //reset / clear members of i2c handle
+    p_i2c_handle->tx_rx_state = I2C_READY;
+    p_i2c_handle->rx_buffer = NULL;
+    p_i2c_handle->rx_bytes_remaining = 0;
+    p_i2c_handle->rx_total_size = 0;
+    i2c_ack_config(p_i2c_x,ENABLE);
+
 }
 
 
@@ -292,6 +378,7 @@ void i2c_7bit_own_addr_config(i2c_register_def_t *p_i2c_x, uint8_t _7bit_own_add
 
 void i2c_data_tx(i2c_register_def_t *p_i2c_x, uint8_t *p_tx_buffer, size_t size_of_data,  uint8_t slave_addr)
 {
+    uint32_t dummy_read;
     // 1. generate start condition
     i2c_generate_start_condition(p_i2c_x);
 
@@ -303,13 +390,16 @@ void i2c_data_tx(i2c_register_def_t *p_i2c_x, uint8_t *p_tx_buffer, size_t size_
 
     i2c_slave_addr_write(p_i2c_x, slave_addr);
 
-    //4. confirm address phase is completed by checking the ADDR flag 
+    //4. confirm address phase is completed by checking the ADDR flag. the ADDR flag is set when slave sends ACK
 
     while (!((p_i2c_x->I2C_SR1) & I2C_FLAG_ADDR));
 
     //5. Clear ADDR flag
+    dummy_read = p_i2c_x->I2C_SR1;
+    dummy_read = p_i2c_x->I2C_SR2;
+    (void) dummy_read;
 
-    i2c_clear_addr_flag(p_i2c_x);
+    
 
     //6. send data until len =0
 
@@ -335,6 +425,7 @@ void i2c_data_tx(i2c_register_def_t *p_i2c_x, uint8_t *p_tx_buffer, size_t size_
 
 void i2c_data_rx(i2c_register_def_t *p_i2c_x, uint8_t *p_rx_buffer, size_t size_of_data, uint8_t slave_addr)
 {
+    uint32_t dummy_read;
     i2c_generate_start_condition(p_i2c_x);
     while (!((p_i2c_x->I2C_SR1) & I2C_FLAG_SB));
     i2c_slave_addr_read(p_i2c_x, slave_addr);
@@ -344,7 +435,10 @@ void i2c_data_rx(i2c_register_def_t *p_i2c_x, uint8_t *p_rx_buffer, size_t size_
     {
         i2c_ack_config(p_i2c_x, DISABLE);
         i2c_generate_stop_condition(p_i2c_x);
-        i2c_clear_addr_flag(p_i2c_x);
+        // clear addr flag
+        dummy_read = p_i2c_x->I2C_SR1;
+        dummy_read = p_i2c_x->I2C_SR2;
+        (void) dummy_read;
         while (!((p_i2c_x->I2C_SR1) & I2C_FLAG_RXNE));
         *p_rx_buffer = (uint8_t)p_i2c_x->I2C_DR;
 
@@ -352,7 +446,10 @@ void i2c_data_rx(i2c_register_def_t *p_i2c_x, uint8_t *p_rx_buffer, size_t size_
 
     if (size_of_data > 1)
     {
-        i2c_clear_addr_flag(p_i2c_x);
+        // clear addr flag
+        dummy_read = p_i2c_x->I2C_SR1;
+        dummy_read = p_i2c_x->I2C_SR2;
+        (void) dummy_read;
         for( uint32_t i = size_of_data; i > 0; i--)
         {
             while (!((p_i2c_x->I2C_SR1) & I2C_FLAG_RXNE));
@@ -411,7 +508,7 @@ uint8_t i2c_interrupt_data_rx(i2c_handle_t *p_i2c_handle, i2c_register_def_t *p_
     if ((i2c_bus_state != I2C_BUSY_RX) && (i2c_bus_state != I2C_BUSY_TX))
     {
        p_i2c_handle->rx_buffer = p_rx_buffer;
-       p_i2c_handle->rx_length = size_of_data;
+       p_i2c_handle->rx_bytes_remaining = size_of_data;
        p_i2c_handle->tx_rx_state = I2C_BUSY_RX;
        p_i2c_handle->slave_addr = slave_addr;
        p_i2c_handle->repeated_start = repeated_start;
@@ -454,7 +551,7 @@ void i2c_event_irq_handler(i2c_handle_t *p_i2c_handle, i2c_register_def_t *p_i2c
     // handle ADDR
     if (addr_interrupt_event(p_i2c_x))
     {
-        i2c_clear_addr_flag(p_i2c_x);
+        i2c_clear_addr_flag(p_i2c_handle, p_i2c_x);
 
     }
 
@@ -476,10 +573,11 @@ void i2c_event_irq_handler(i2c_handle_t *p_i2c_handle, i2c_register_def_t *p_i2c
 
                 // reset all members of handle
 
-                i2c_close_tx();
+                i2c_close_tx(p_i2c_handle, p_i2c_x);
 
 
-                // notify application about transmission complete using EventCallback TODO
+                // notify application about transmission complete using EventCallback
+                i2c_application_event_callback(p_i2c_x, I2C_EVENT_TX_COMPLETE);
 
             }
             
@@ -493,6 +591,8 @@ void i2c_event_irq_handler(i2c_handle_t *p_i2c_handle, i2c_register_def_t *p_i2c
         // clear stopf. to clear stopf read SR1 register and write to CR1 register
         // SR1 register is read by stopf_interrupt_event, we just need to write to CR1
         p_i2c_x->I2C_CR1 |= 0x0000;
+        // notify application
+        i2c_application_event_callback(p_i2c_x, I2C_EVENT_STOP);
     }
 
     //handle txe
@@ -517,26 +617,46 @@ void i2c_event_irq_handler(i2c_handle_t *p_i2c_handle, i2c_register_def_t *p_i2c
     // handle rxne
     if(rxne_interrupt_event(p_i2c_x))
     {
-        if(p_i2c_handle->tx_rx_state == I2C_BUSY_RX)
+        if(i2c_is_master(p_i2c_x))
         {
-            if(p_i2c_handle->rx_size == 1)
+            if(p_i2c_handle->tx_rx_state == I2C_BUSY_RX)
             {
-                *p_i2c_handle->rx_buffer = p_i2c_x->I2C_DR;
-                p_i2c_handle->rx_length--;  
-            }
-            if(p_i2c_handle->rx_size > 1)
-            {
-                if (p_i2c_handle->rx_length == 2)
+                if(p_i2c_handle->rx_total_size == 1)
                 {
-                    //clear ack bit
-                    i2c_ack_config(p_i2c_x,DISABLE);
+                    *p_i2c_handle->rx_buffer = p_i2c_x->I2C_DR;
+                    p_i2c_handle->rx_bytes_remaining--;  
+                }
+                if(p_i2c_handle->rx_total_size > 1)
+                {
+                    if (p_i2c_handle->rx_bytes_remaining == 2)
+                    {
+                        //clear ack bit
+                        i2c_ack_config(p_i2c_x,DISABLE);
+
+                    }
+                    *p_i2c_handle->rx_buffer = p_i2c_x->I2C_DR;
+                    p_i2c_handle->rx_buffer++;
+                    p_i2c_handle->rx_bytes_remaining--;
+                }
+                if(p_i2c_handle->rx_total_size == 0)
+                {
+                    //close reception
+                    // gnerat stop condition
+                    if(p_i2c_handle->repeated_start == I2C_REPEATED_START_DISABLED)
+                    {
+                        i2c_generate_stop_condition(p_i2c_x);
+                    }
+                    // close rx i2c
+                    i2c_close_rx(p_i2c_handle, p_i2c_x);
+
+                    //notify application
+                    i2c_application_event_callback(p_i2c_x, I2C_EVENT_RX_COMPLETE);
+            
 
                 }
-                *p_i2c_handle->rx_buffer = p_i2c_x->I2C_DR;
-                p_i2c_handle->rx_buffer++;
-                p_i2c_handle->rx_length--;
-            }
 
+
+            }
 
         }
 
@@ -546,6 +666,13 @@ void i2c_event_irq_handler(i2c_handle_t *p_i2c_handle, i2c_register_def_t *p_i2c
 
 void i2c_error_irq_handler(i2c_handle_t *p_i2c_handle, i2c_register_def_t *p_i2c_x)
 {
+    // handle BERR bus error
+
+    //handle ARLO. arbitration loss
+
+    // handle AF. acknowledge error
+
+    // handle OVR. overrun
 
 
 
