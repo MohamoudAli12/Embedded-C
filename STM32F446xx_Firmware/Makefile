@@ -3,7 +3,7 @@ OBJCOPY = arm-none-eabi-objcopy
 MACH = cortex-m4
 MCU = stm32f446xx
 
-CFLAGS = -c -g -mcpu=$(MACH) -mthumb -mfloat-abi=soft -std=gnu11 -Wall -O2 -I $(INC)
+CFLAGS = -c -g -mcpu=$(MACH) -mthumb -mfloat-abi=soft -std=gnu99 -Wall -O2 -I $(INC)
 LDFLAGS = -mcpu=$(MACH) -mthumb  --specs=nosys.specs --specs=nano.specs -T $(LD_SCRIPT)
 DEPFLAGS = -MD -MP
 
