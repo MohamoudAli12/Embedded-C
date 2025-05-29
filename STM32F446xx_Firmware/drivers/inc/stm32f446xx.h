@@ -10,6 +10,8 @@
 #define STM32F446XX_H
 
 #include <stdint.h>
+#include <stddef.h>
+#include <stdbool.h>
 
 #define __weak                                           __attribute__((weak))                                           
 

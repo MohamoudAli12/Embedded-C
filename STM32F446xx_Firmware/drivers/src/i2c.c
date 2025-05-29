@@ -1,27 +1,28 @@
 #include "i2c.h"
-#include <stdbool.h>
 
-static uint32_t i2c_pclk1_freq_get(void);
+
+
 static void i2c_generate_start_condition(i2c_register_def_t *p_i2c_x);
+static void i2c_generate_stop_condition(i2c_register_def_t *p_i2c_x);
 static void i2c_slave_addr_write(i2c_register_def_t *p_i2c_x, uint8_t slave_addr);
 static void i2c_slave_addr_read(i2c_register_def_t *p_i2c_x, uint8_t slave_addr);
 static void i2c_clear_addr_flag(i2c_handle_t *p_i2c_handle, i2c_register_def_t *p_i2c_x);
-static void i2c_generate_stop_condition(i2c_register_def_t *p_i2c_x);
+static bool i2c_is_master(i2c_register_def_t *p_i2c_x);
+static bool i2c_is_slave(i2c_register_def_t *p_i2c_x);
+static uint32_t i2c_pclk1_freq_get(void);
 static bool i2c_sb_interrupt_event(i2c_register_def_t *p_i2c_x);
 static bool i2c_addr_interrupt_event(i2c_register_def_t *p_i2c_x);
 static bool i2c_btf_interrupt_event(i2c_register_def_t *p_i2c_x);
 static bool i2c_stopf_interrupt_event(i2c_register_def_t *p_i2c_x);
 static bool i2c_txe_interrupt_event(i2c_register_def_t *p_i2c_x);
 static bool i2c_rxne_interrupt_event(i2c_register_def_t *p_i2c_x);
-static bool i2c_is_master(i2c_register_def_t *p_i2c_x);
-static bool i2c_is_slave(i2c_register_def_t *p_i2c_x);
-static void i2c_close_tx(i2c_handle_t *p_i2c_handle, i2c_register_def_t *p_i2c_x);
-static void i2c_close_rx(i2c_handle_t *p_i2c_handle, i2c_register_def_t *p_i2c_x);
 static bool i2c_berr_interrupt_error(i2c_register_def_t *p_i2c_x);
 static bool i2c_arlo_interrupt_error(i2c_register_def_t *p_i2c_x);
 static bool i2c_af_interrupt_error(i2c_register_def_t *p_i2c_x);
 static bool i2c_ovr_interrupt_error(i2c_register_def_t *p_i2c_x);
 static bool i2c_timeout_interrupt_error(i2c_register_def_t *p_i2c_x);
+static void i2c_close_tx(i2c_handle_t *p_i2c_handle, i2c_register_def_t *p_i2c_x);
+static void i2c_close_rx(i2c_handle_t *p_i2c_handle, i2c_register_def_t *p_i2c_x);
 
 
 
@@ -30,87 +31,11 @@ static bool i2c_timeout_interrupt_error(i2c_register_def_t *p_i2c_x);
 i2c_handle_t i2c1_handle = {0};
 i2c_handle_t i2c2_handle = {0};
 i2c_handle_t i2c3_handle = {0};
-i2c_handle_t i2c4_handle = {0};
+
 
 __weak void i2c_application_event_callback(i2c_register_def_t *p_i2c_x, i2c_events_t event)
 {
 
-}
-
-static void i2c_master_handle_1byte_rx(i2c_handle_t *p_i2c_handle, i2c_register_def_t *p_i2c_x)
-{
-    *p_i2c_handle->rx_buffer = p_i2c_x->I2C_DR;
-    p_i2c_handle->rx_bytes_remaining--;
-
-    if (p_i2c_handle->repeated_start == I2C_REPEATED_START_DISABLED)
-        i2c_generate_stop_condition(p_i2c_x);
-
-    i2c_close_rx(p_i2c_handle, p_i2c_x);
-    i2c_application_event_callback(p_i2c_x, I2C_EVENT_RX_COMPLETE);
-}
-
-static void i2c_master_handle_2byte_rx(i2c_handle_t *p_i2c_handle, i2c_register_def_t *p_i2c_x)
-{
-    if (i2c_btf_interrupt_event(p_i2c_x))
-    {
-        if (p_i2c_handle->repeated_start == I2C_REPEATED_START_DISABLED)
-            i2c_generate_stop_condition(p_i2c_x);
-
-        *p_i2c_handle->rx_buffer++ = p_i2c_x->I2C_DR;
-        *p_i2c_handle->rx_buffer++ = p_i2c_x->I2C_DR;
-        p_i2c_handle->rx_bytes_remaining -= 2;
-
-        i2c_close_rx(p_i2c_handle, p_i2c_x);
-        i2c_application_event_callback(p_i2c_x, I2C_EVENT_RX_COMPLETE);
-    }
-}
-
-static void i2c_master_handle_3byte_rx(i2c_handle_t *p_i2c_handle, i2c_register_def_t *p_i2c_x)
-{
-    if (i2c_btf_interrupt_event(p_i2c_x))
-    {
-        i2c_ack_config(p_i2c_x, DISABLE); // Prepare for final two bytes
-        *p_i2c_handle->rx_buffer++ = p_i2c_x->I2C_DR;
-        p_i2c_handle->rx_bytes_remaining--;
-    }
-}
-
-
-static void i2c_master_handle_gt3byte_rx(i2c_handle_t *p_i2c_handle, i2c_register_def_t *p_i2c_x)
-{
-    if (i2c_rxne_interrupt_event(p_i2c_x))
-    {
-        *p_i2c_handle->rx_buffer++ = p_i2c_x->I2C_DR;
-        p_i2c_handle->rx_bytes_remaining--;
-    }
-}
-
-static void i2c_master_handle_rxne(i2c_handle_t *p_i2c_handle, i2c_register_def_t *p_i2c_x)
-{
-    if (p_i2c_handle->rx_total_size == 1 && p_i2c_handle->rx_bytes_remaining == 1)
-    {
-        i2c_master_handle_1byte_rx(p_i2c_handle, p_i2c_x);
-        return;
-    }
-
-    if (p_i2c_handle->rx_total_size > 1)
-    {
-        if (p_i2c_handle->rx_bytes_remaining == 2)
-        {
-            i2c_master_handle_2byte_rx(p_i2c_handle, p_i2c_x);
-            return;
-        }
-        else if (p_i2c_handle->rx_bytes_remaining == 3)
-        {
-            i2c_master_handle_3byte_rx(p_i2c_handle, p_i2c_x);
-            return;
-        }
-        else if (p_i2c_handle->rx_bytes_remaining > 3)
-        {
-            i2c_master_handle_gt3byte_rx(p_i2c_handle, p_i2c_x);
-            return;
-        }
-    }
 }
 
 
@@ -165,6 +90,71 @@ static void i2c_clear_addr_flag(i2c_handle_t *p_i2c_handle, i2c_register_def_t *
     dummy_read = p_i2c_x->I2C_SR1;
     dummy_read = p_i2c_x->I2C_SR2;
     (void) dummy_read;
+}
+
+static bool i2c_is_master(i2c_register_def_t *p_i2c_x)
+{
+    return (((p_i2c_x->I2C_SR2) & (1 << I2C_SR2_MSL)) == 1);
+
+}
+static bool i2c_is_slave(i2c_register_def_t *p_i2c_x)
+{
+    return (((p_i2c_x->I2C_SR2) & (1 << I2C_SR2_MSL)) == 0);
+}
+
+static uint32_t i2c_pclk1_freq_get(void)
+{
+    uint32_t pclk1_value_in_hz;
+    uint32_t system_clk;
+    uint8_t clksrc;
+    uint8_t  ahb_prescaler_register_value;
+    uint16_t ahb_prescaler;
+    const uint16_t ahb_prescaler_factor[]={2,4,8,16,64,128,256,512};
+    uint8_t apb1_prescaler_register_value;
+    uint8_t apb1_prescaler;
+    const uint8_t apb1_prescaler_factor[]={2,4,8,16};
+    
+    clksrc = (RCC->RCC_CFGR >> 2) & (0x03);
+
+    switch (clksrc)
+    {
+        case HSI:
+            system_clk = HSI_FREQ;
+            break;
+        case HSE:
+            system_clk = HSE_FREQ;
+            break;
+        //TODO: PLL CLK Source
+        default:
+            system_clk = HSE_FREQ;
+            break; 
+
+    }
+
+    ahb_prescaler_register_value = (RCC->RCC_CFGR >> 4) & (0x0F);
+    if (ahb_prescaler_register_value < 8)
+    {
+        ahb_prescaler = 1;
+    }
+    else
+    {
+        ahb_prescaler = ahb_prescaler_factor[ahb_prescaler_register_value - 8];
+    }
+
+    apb1_prescaler_register_value = (RCC->RCC_CFGR >> 10) & (0x07);
+    if (apb1_prescaler_register_value < 4)
+    {
+        apb1_prescaler = 1;
+    }
+    else
+    {
+        apb1_prescaler = apb1_prescaler_factor[apb1_prescaler_register_value - 4];
+    }
+
+    pclk1_value_in_hz = ((system_clk / ahb_prescaler)/apb1_prescaler);
+    
+    return pclk1_value_in_hz;
+
 }
 
 static bool i2c_sb_interrupt_event(i2c_register_def_t *p_i2c_x)
@@ -255,17 +245,6 @@ static bool i2c_timeout_interrupt_error(i2c_register_def_t *p_i2c_x)
 
 
 
-static bool i2c_is_master(i2c_register_def_t *p_i2c_x)
-{
-    return (((p_i2c_x->I2C_SR2) & (1 << I2C_SR2_MSL)) == 1);
-
-}
-static bool i2c_is_slave(i2c_register_def_t *p_i2c_x)
-{
-    return (((p_i2c_x->I2C_SR2) & (1 << I2C_SR2_MSL)) == 0);
-}
-
-
 static void i2c_close_tx(i2c_handle_t *p_i2c_handle, i2c_register_def_t *p_i2c_x)
 {
     //disable ITBUFEN
@@ -297,59 +276,81 @@ static void i2c_close_rx(i2c_handle_t *p_i2c_handle, i2c_register_def_t *p_i2c_x
 
 }
 
-static uint32_t i2c_pclk1_freq_get(void)
+
+static void i2c_master_handle_1byte_rx(i2c_handle_t *p_i2c_handle, i2c_register_def_t *p_i2c_x)
 {
-    uint32_t pclk1_value_in_hz;
-    uint32_t system_clk;
-    uint8_t clksrc;
-    uint8_t  ahb_prescaler_register_value;
-    uint16_t ahb_prescaler;
-    const uint16_t ahb_prescaler_factor[]={2,4,8,16,64,128,256,512};
-    uint8_t apb1_prescaler_register_value;
-    uint8_t apb1_prescaler;
-    const uint8_t apb1_prescaler_factor[]={2,4,8,16};
-    
-    clksrc = (RCC->RCC_CFGR >> 2) & (0x03);
+    *p_i2c_handle->rx_buffer = p_i2c_x->I2C_DR;
+    p_i2c_handle->rx_bytes_remaining--;
 
-    switch (clksrc)
+    if (p_i2c_handle->repeated_start == I2C_REPEATED_START_DISABLED)
+        i2c_generate_stop_condition(p_i2c_x);
+
+    i2c_close_rx(p_i2c_handle, p_i2c_x);
+    i2c_application_event_callback(p_i2c_x, I2C_EVENT_RX_COMPLETE);
+}
+
+static void i2c_master_handle_2byte_rx(i2c_handle_t *p_i2c_handle, i2c_register_def_t *p_i2c_x)
+{
+    if (i2c_btf_interrupt_event(p_i2c_x))
     {
-        case HSI:
-            system_clk = HSI_FREQ;
-            break;
-        case HSE:
-            system_clk = HSE_FREQ;
-            break;
-        //TODO: PLL CLK Source
-        default:
-            system_clk = HSE_FREQ;
-            break; 
+        if (p_i2c_handle->repeated_start == I2C_REPEATED_START_DISABLED)
+            i2c_generate_stop_condition(p_i2c_x);
 
+        *p_i2c_handle->rx_buffer++ = p_i2c_x->I2C_DR;
+        *p_i2c_handle->rx_buffer++ = p_i2c_x->I2C_DR;
+        p_i2c_handle->rx_bytes_remaining -= 2;
+
+        i2c_close_rx(p_i2c_handle, p_i2c_x);
+        i2c_application_event_callback(p_i2c_x, I2C_EVENT_RX_COMPLETE);
+    }
+}
+
+static void i2c_master_handle_3byte_rx(i2c_handle_t *p_i2c_handle, i2c_register_def_t *p_i2c_x)
+{
+    if (i2c_btf_interrupt_event(p_i2c_x))
+    {
+        i2c_ack_config(p_i2c_x, DISABLE); // Prepare for final two bytes
+        *p_i2c_handle->rx_buffer++ = p_i2c_x->I2C_DR;
+        p_i2c_handle->rx_bytes_remaining--;
+    }
+}
+
+
+static void i2c_master_handle_gt3byte_rx(i2c_handle_t *p_i2c_handle, i2c_register_def_t *p_i2c_x)
+{
+    if (i2c_rxne_interrupt_event(p_i2c_x))
+    {
+        *p_i2c_handle->rx_buffer++ = p_i2c_x->I2C_DR;
+        p_i2c_handle->rx_bytes_remaining--;
+    }
+}
+
+static void i2c_master_handle_rxne(i2c_handle_t *p_i2c_handle, i2c_register_def_t *p_i2c_x)
+{
+    if (p_i2c_handle->rx_total_size == 1 && p_i2c_handle->rx_bytes_remaining == 1)
+    {
+        i2c_master_handle_1byte_rx(p_i2c_handle, p_i2c_x);
+        return;
     }
 
-    ahb_prescaler_register_value = (RCC->RCC_CFGR >> 4) & (0x0F);
-    if (ahb_prescaler_register_value < 8)
+    if (p_i2c_handle->rx_total_size > 1)
     {
-        ahb_prescaler = 1;
+        if (p_i2c_handle->rx_bytes_remaining == 2)
+        {
+            i2c_master_handle_2byte_rx(p_i2c_handle, p_i2c_x);
+            return;
+        }
+        else if (p_i2c_handle->rx_bytes_remaining == 3)
+        {
+            i2c_master_handle_3byte_rx(p_i2c_handle, p_i2c_x);
+            return;
+        }
+        else if (p_i2c_handle->rx_bytes_remaining > 3)
+        {
+            i2c_master_handle_gt3byte_rx(p_i2c_handle, p_i2c_x);
+            return;
+        }
     }
-    else
-    {
-        ahb_prescaler = ahb_prescaler_factor[ahb_prescaler_register_value - 8];
-    }
-
-    apb1_prescaler_register_value = (RCC->RCC_CFGR >> 10) & (0x07);
-    if (apb1_prescaler_register_value < 4)
-    {
-        apb1_prescaler = 1;
-    }
-    else
-    {
-        apb1_prescaler = apb1_prescaler_factor[apb1_prescaler_register_value - 4];
-    }
-
-    pclk1_value_in_hz = ((system_clk / ahb_prescaler)/apb1_prescaler);
-    
-    return pclk1_value_in_hz;
-
 }
 
 
@@ -742,4 +743,35 @@ void i2c_error_irq_handler(i2c_handle_t *p_i2c_handle, i2c_register_def_t *p_i2c
         i2c_application_event_callback(p_i2c_x, I2C_ERROR_TIMEOUT);
 
     }
+}
+
+void I2C1_EV_IRQHandler(void)
+{
+    i2c_event_irq_handler(&i2c1_handle, I2C1);
+}
+
+void I2C2_EV_IRQHandler(void)
+{
+    i2c_event_irq_handler(&i2c2_handle, I2C2);
+}
+
+void I2C3_EV_IRQHandler(void)
+{
+    i2c_event_irq_handler(&i2c3_handle, I2C3);
+
+}
+
+void I2C1_ER_IRQHandler(void)
+{
+    i2c_error_irq_handler(&i2c1_handle, I2C1);
+}
+
+void I2C2_ER_IRQHandler(void)
+{
+    i2c_error_irq_handler(&i2c2_handle, I2C2);
+}
+
+void I2C3_ER_IRQHandler(void)
+{
+    i2c_error_irq_handler(&i2c3_handle, I2C3);
 }
