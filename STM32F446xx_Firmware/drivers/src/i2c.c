@@ -167,61 +167,6 @@ static void i2c_clear_addr_flag(i2c_handle_t *p_i2c_handle, i2c_register_def_t *
     (void) dummy_read;
 }
 
-
-static uint32_t i2c_pclk1_freq_get(void)
-{
-    uint32_t pclk1_value_in_hz;
-    uint32_t system_clk;
-    uint8_t clksrc;
-    uint8_t  ahb_prescaler_register_value;
-    uint16_t ahb_prescaler;
-    const uint16_t ahb_prescaler_factor[]={2,4,8,16,64,128,256,512};
-    uint8_t apb1_prescaler_register_value;
-    uint8_t apb1_prescaler;
-    const uint8_t apb1_prescaler_factor[]={2,4,8,16};
-    
-    clksrc = (RCC->RCC_CFGR >> 2) & (0x03);
-
-    switch (clksrc)
-    {
-        case HSI:
-            system_clk = HSI_FREQ;
-            break;
-        case HSE:
-            system_clk = HSE_FREQ;
-            break;
-        //TODO: PLL CLK Source
-        default:
-            system_clk = HSE_FREQ;
-            break; 
-
-    }
-
-    ahb_prescaler_register_value = (RCC->RCC_CFGR >> 4) & (0x0F);
-    if (ahb_prescaler_register_value < 8)
-    {
-        ahb_prescaler = 1;
-    }
-    else
-    {
-        ahb_prescaler = ahb_prescaler_factor[ahb_prescaler_register_value - 8];
-    }
-
-    apb1_prescaler_register_value = (RCC->RCC_CFGR >> 10) & (0x07);
-    if (apb1_prescaler_register_value < 4)
-    {
-        apb1_prescaler = 1;
-    }
-    else
-    {
-        apb1_prescaler = apb1_prescaler_factor[apb1_prescaler_register_value - 4];
-    }
-
-    pclk1_value_in_hz = ((system_clk / ahb_prescaler)/apb1_prescaler);
-    
-    return pclk1_value_in_hz;
-
-}
 static bool i2c_sb_interrupt_event(i2c_register_def_t *p_i2c_x)
 {
     bool sb_flag_set = ((p_i2c_x->I2C_SR1) & I2C_FLAG_SB)!= 0;
@@ -352,6 +297,61 @@ static void i2c_close_rx(i2c_handle_t *p_i2c_handle, i2c_register_def_t *p_i2c_x
 
 }
 
+static uint32_t i2c_pclk1_freq_get(void)
+{
+    uint32_t pclk1_value_in_hz;
+    uint32_t system_clk;
+    uint8_t clksrc;
+    uint8_t  ahb_prescaler_register_value;
+    uint16_t ahb_prescaler;
+    const uint16_t ahb_prescaler_factor[]={2,4,8,16,64,128,256,512};
+    uint8_t apb1_prescaler_register_value;
+    uint8_t apb1_prescaler;
+    const uint8_t apb1_prescaler_factor[]={2,4,8,16};
+    
+    clksrc = (RCC->RCC_CFGR >> 2) & (0x03);
+
+    switch (clksrc)
+    {
+        case HSI:
+            system_clk = HSI_FREQ;
+            break;
+        case HSE:
+            system_clk = HSE_FREQ;
+            break;
+        //TODO: PLL CLK Source
+        default:
+            system_clk = HSE_FREQ;
+            break; 
+
+    }
+
+    ahb_prescaler_register_value = (RCC->RCC_CFGR >> 4) & (0x0F);
+    if (ahb_prescaler_register_value < 8)
+    {
+        ahb_prescaler = 1;
+    }
+    else
+    {
+        ahb_prescaler = ahb_prescaler_factor[ahb_prescaler_register_value - 8];
+    }
+
+    apb1_prescaler_register_value = (RCC->RCC_CFGR >> 10) & (0x07);
+    if (apb1_prescaler_register_value < 4)
+    {
+        apb1_prescaler = 1;
+    }
+    else
+    {
+        apb1_prescaler = apb1_prescaler_factor[apb1_prescaler_register_value - 4];
+    }
+
+    pclk1_value_in_hz = ((system_clk / ahb_prescaler)/apb1_prescaler);
+    
+    return pclk1_value_in_hz;
+
+}
+
 
 
 void i2c_peripheral_enable(i2c_register_def_t *p_i2c_x)
@@ -387,7 +387,6 @@ void i2c_ack_config(i2c_register_def_t *p_i2c_x, signal_state_t enable_disable)
 
     }
 }
-
 
 void i2c_cr2_freq_config(i2c_register_def_t *p_i2c_x)
 {
