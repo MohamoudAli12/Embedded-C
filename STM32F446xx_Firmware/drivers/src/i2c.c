@@ -1,7 +1,5 @@
 #include "i2c.h"
 
-
-
 static void i2c_generate_start_condition(i2c_register_def_t *p_i2c_x);
 static void i2c_generate_stop_condition(i2c_register_def_t *p_i2c_x);
 static void i2c_slave_addr_write(i2c_register_def_t *p_i2c_x, uint8_t slave_addr);
@@ -23,9 +21,6 @@ static bool i2c_ovr_interrupt_error(i2c_register_def_t *p_i2c_x);
 static bool i2c_timeout_interrupt_error(i2c_register_def_t *p_i2c_x);
 static void i2c_close_tx(i2c_handle_t *p_i2c_handle, i2c_register_def_t *p_i2c_x);
 static void i2c_close_rx(i2c_handle_t *p_i2c_handle, i2c_register_def_t *p_i2c_x);
-
-
-
 
 
 i2c_handle_t i2c1_handle = {0};

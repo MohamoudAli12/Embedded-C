@@ -98,8 +98,6 @@ typedef enum
 } gpio_pin_state_t;
 
 
-
-
 /*********************************************************************
  * @fn      		  - gpio_input_mode_config
  *
