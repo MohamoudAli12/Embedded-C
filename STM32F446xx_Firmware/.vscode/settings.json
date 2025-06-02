@@ -1,0 +1,22 @@
+{
+    "C_Cpp.default.compilerPath": "C:\\Program Files (x86)\\Arm GNU Toolchain arm-none-eabi\\13.2 Rel1\\bin\\arm-none-eabi-gcc.exe",
+    "cortex-debug.armToolchainPath": "C:\\Program Files (x86)\\Arm GNU Toolchain arm-none-eabi\\13.2 Rel1\\bin",
+    "cortex-debug.gdbPath": "C:\\Program Files (x86)\\Arm GNU Toolchain arm-none-eabi\\13.2 Rel1\\bin\\arm-none-eabi-gdb.exe",
+    "cortex-debug.openocdPath": "C:\\msys64\\mingw64\\bin\\openocd.exe",
+    "terminal.integrated.profiles.windows": {
+        "MinGW64": {
+            "path": "C:\\msys64\\usr\\bin\\bash.exe",
+            "args": ["-l", "-i"],
+            "env": {
+                "MSYSTEM": "MINGW64"
+            },
+            
+            "icon": "terminal-bash"
+        }
+    },
+    "terminal.integrated.defaultProfile.windows": "zsh",
+    "terminal.integrated.fontFamily": "MesloLGS NF",
+    "mcu-debug.peripheral-viewer.svdPathConfig": "default",
+    "mcu-debug.peripheral-viewer.deviceConfig": "STM32F446x",
+    "cortex-debug.variableUseNaturalFormat": true
+}

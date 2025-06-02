@@ -1,0 +1,10 @@
+BasedOnStyle: WebKit
+IndentWidth: 2
+UseTab: Never
+BreakBeforeBraces: Allman
+AllowShortFunctionsOnASingleLine: InlineOnly
+ColumnLimit: 0
+SpacesInParentheses: false
+SpaceAfterCStyleCast: false
+PointerAlignment: Right
+AlignAfterOpenBracket: Align
