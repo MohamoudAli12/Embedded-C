@@ -21,14 +21,15 @@
 
 void __attribute__((weak)) cm3_assert_failed(void)
 {
-	while (1);
+  while (1)
+    ;
 }
 
 void __attribute__((weak)) cm3_assert_failed_verbose(
-		const char *file __attribute__((unused)),
-		int line __attribute__((unused)),
-		const char *func __attribute__((unused)),
-		const char *assert_expr __attribute__((unused)))
+    const char *file __attribute__((unused)),
+    int line __attribute__((unused)),
+    const char *func __attribute__((unused)),
+    const char *assert_expr __attribute__((unused)))
 {
-	cm3_assert_failed();
+  cm3_assert_failed();
 }

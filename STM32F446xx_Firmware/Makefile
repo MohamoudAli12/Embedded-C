@@ -101,4 +101,8 @@ flash:
 clean:
 	@rm -rf $(OBJ_DIR) $(BIN_DIR) $(DEBUG_DIR)
 
+format:
+	@find . -type f \( -name "*.c" -o -name "*.h" \) -exec clang-format -i -style=file {} +
+		
+
 .PHONY: all clean flash debug size

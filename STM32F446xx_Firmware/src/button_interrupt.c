@@ -3,7 +3,6 @@
 #include "stm32f446xx.h"
 #include <stdint.h>
 
-
 #define BUTTON_PRESSED 0
 
 void button_interrupt_led_toggle(void)

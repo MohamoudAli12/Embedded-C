@@ -3,85 +3,81 @@
 
 #include "stm32f446xx.h"
 
-
+typedef enum
+{
+  SPI_CLK_SPEED_8MHZ,
+  SPI_CLK_SPEED_4MHZ,
+  SPI_CLK_SPEED_2MHZ,
+  SPI_CLK_SPEED_1MHZ,
+  SPI_CLK_SPEED_500KHZ,
+  SPI_CLK_SPEED_250KHZ,
+  SPI_CLK_SPEED_125KHZ,
+  SPI_CLK_SPEED_62K5HZ
+} spi_clk_speed_t;
 
 typedef enum
 {
-    SPI_CLK_SPEED_8MHZ,
-    SPI_CLK_SPEED_4MHZ,
-    SPI_CLK_SPEED_2MHZ,
-    SPI_CLK_SPEED_1MHZ,
-    SPI_CLK_SPEED_500KHZ,
-    SPI_CLK_SPEED_250KHZ,
-    SPI_CLK_SPEED_125KHZ,
-    SPI_CLK_SPEED_62K5HZ
-}spi_clk_speed_t;
+  SPI_READY,
+  SPI_BUSY_TX,
+  SPI_BUSY_RX
+
+} spi_state_t;
 
 typedef enum
 {
-    SPI_READY,
-    SPI_BUSY_TX,
-    SPI_BUSY_RX
-
-}spi_state_t;
+  SPI_MODE_SLAVE,
+  SPI_MODE_MASTER
+} spi_config_master_slave_t;
 
 typedef enum
 {
-    SPI_MODE_SLAVE,
-    SPI_MODE_MASTER
-}spi_config_master_slave_t;
-
-
-typedef enum
-{
-    SPI_TWO_LINE_MODE,
-    SPI_ONE_LINE_MODE_TX_ONLY,
-    SPI_ONE_LINE_MODE_RX_ONLY,
-    SPI_SIMPLEX_RXONLY
-}spi_config_line_mode_t;
+  SPI_TWO_LINE_MODE,
+  SPI_ONE_LINE_MODE_TX_ONLY,
+  SPI_ONE_LINE_MODE_RX_ONLY,
+  SPI_SIMPLEX_RXONLY
+} spi_config_line_mode_t;
 
 typedef enum
 {
-    SPI_8_BIT_DATA,
-    SPI_16_BIT_DATA
-}spi_config_data_length_t;
-
-
-typedef enum
-{
-    SPI_CPHA_LOW,
-    SPI_CPHA_HIGH
-
-}spi_config_cpha_t;
+  SPI_8_BIT_DATA,
+  SPI_16_BIT_DATA
+} spi_config_data_length_t;
 
 typedef enum
 {
-    SPI_CPOL_LOW,
-    SPI_CPOL_HIGH
+  SPI_CPHA_LOW,
+  SPI_CPHA_HIGH
 
-}spi_config_cpol_t;
+} spi_config_cpha_t;
 
 typedef enum
 {
-    SPI_HW_SLAVE_MANAGE,
-    SPI_SW_SLAVE_MANAGE
-}spi_config_slave_manage_t;
+  SPI_CPOL_LOW,
+  SPI_CPOL_HIGH
 
-typedef enum 
+} spi_config_cpol_t;
+
+typedef enum
 {
-    SPI_PIN_RESET,
-    SPI_PIN_SET      
+  SPI_HW_SLAVE_MANAGE,
+  SPI_SW_SLAVE_MANAGE
+} spi_config_slave_manage_t;
+
+typedef enum
+{
+  SPI_PIN_RESET,
+  SPI_PIN_SET
 } spi_pin_state_t;
 
 typedef struct
 {
-    volatile uint8_t *tx_buffer;
-    volatile uint8_t *rx_buffer;
-    volatile size_t tx_size;
-    volatile size_t rx_size;
-    volatile spi_state_t rx_state;
-    volatile spi_state_t tx_state;
-}spi_handle_t;
+  volatile uint8_t *tx_buffer;
+  volatile uint8_t *rx_buffer;
+  volatile size_t tx_size;
+  volatile size_t rx_size;
+  volatile spi_state_t rx_state;
+  volatile spi_state_t tx_state;
+} spi_handle_t;
 
 void spi_speed_config(spi_register_def_t *p_spi_x, spi_clk_speed_t clk_speed);
 void spi_as_master_or_slave_config(spi_register_def_t *p_spi_x, spi_config_master_slave_t master_or_slave);

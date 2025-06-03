@@ -1,8 +1,8 @@
-#include <stdint.h>
 #include "fn_prototypes.h"
+#include <stdint.h>
 
-
-void delay (uint32_t delay_time)
+void delay(uint32_t delay_time)
 {
-    for (uint32_t i=0; i <delay_time; i++);
+  for (uint32_t i = 0; i < delay_time; i++)
+    ;
 }

@@ -1,6 +1,6 @@
-#include <stdint.h>
-#include "stm32f446xx.h"
 #include "gpio.h"
+#include "stm32f446xx.h"
+#include <stdint.h>
 
 /**** active low
 

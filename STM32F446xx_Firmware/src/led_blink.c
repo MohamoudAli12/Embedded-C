@@ -3,7 +3,6 @@
 #include "stm32f446xx.h"
 #include <stdint.h>
 
-
 #define PUSHPULL 7
 void blink_led(void)
 {
