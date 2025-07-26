@@ -69,18 +69,6 @@ typedef enum
 }signal_state_t;
 
 
-
-
-
-
-
-
-/***********************************************************************************************/
-/***********************************************************************************************/
-
-
-
-
 /***********************************************************************************************/
 /***********************************************************************************************/
 
@@ -380,10 +368,13 @@ typedef struct
 /***********************************************************************************************/
 
 //I2C Base Address definition
+#define I2C1_OFFSET                                       0x5400U
+#define I2C2_OFFSET                                       0x5800U
+#define I2C3_OFFSET                                       0x5C00U
 
-#define I2C1_BASE_ADDR                                    ((APB1_BASE_ADDR)+(0x5400U))
-#define I2C2_BASE_ADDR                                    ((APB1_BASE_ADDR)+(0x5800U)) 
-#define I2C3_BASE_ADDR                                    ((APB1_BASE_ADDR)+(0x5C00U)) 
+#define I2C1_BASE_ADDR                                    ((APB1_BASE_ADDR)+(I2C1_OFFSET))
+#define I2C2_BASE_ADDR                                    ((APB1_BASE_ADDR)+(I2C2_OFFSET)) 
+#define I2C3_BASE_ADDR                                    ((APB1_BASE_ADDR)+(I2C3_OFFSET)) 
 
 // I2C register definitions
 
@@ -476,6 +467,82 @@ typedef struct
 
 /***********************************************************************************************/
 /***********************************************************************************************/
+#define UART1_OFFSET                                            0x1000U
+#define USART6_OFFSET                                           0x1400U
+
+#define USART2_OFFSET                                           0x4400U
+#define USART3_OFFSET                                           0x4800U
+#define UART4_OFFSET                                            0x4C00U
+#define UART5_OFFSET                                            0x5000U
+
+#define UART1_BASE_ADDR                                         (APB2_BASE_ADDR + UART_OFFSET)
+#define USART6_BASE_ADDR                                        (APB2_BASE_ADDR + USART6_OFFSET)
+
+#define USART2_BASE_ADDR                                        (APB1_BASE_ADDR + USART2_OFFSET)
+#define USART3_BASE_ADDR                                        (APB1_BASE_ADDR + USART3_OFFSET)
+#define UART4_BASE_ADDR                                         (APB1_BASE_ADDR + UART4_OFFSET)
+#define UART5_BASE_ADDR                                         (APB1_BASE_ADDR + UART5_OFFSET)
+
+typedef struct
+{
+    volatile uint32_t USART_SR;
+    volatile uint32_t USART_DR;
+    volatile uint32_t USART_BRR;
+    volatile uint32_t USART_CR1;
+    volatile uint32_t USART_CR2;
+    volatile uint32_t USART_CR3;
+    volatile uint32_t USART_GTPR;   
+}usart_register_def_t;
+
+#define UART1                                                   ((usart_register_def_t *)UART1_BASE_ADDR)
+#define UART4                                                   ((usart_register_def_t *)UART4_BASE_ADDR)
+#define UART5                                                   ((usart_register_def_t *)UART5_BASE_ADDR)
+#define USART2                                                  ((usart_register_def_t *)USART2_BASE_ADDR)
+#define USART3                                                  ((usart_register_def_t *)USART3_BASE_ADDR)
+#define USART6                                                  ((usart_register_def_t *)USART6_BASE_ADDR)
+
+// uart peripheral clock enable 
+
+#define UART1_PCLK_EN()                                         ((RCC->RCC_APB2ENR)  |= (1<<4))
+#define USART6_PCLK_EN()                                        ((RCC->RCC_APB2ENR)  |= (1<<5))
+
+#define USART2_PCLK_EN()                                        ((RCC->RCC_APB1ENR)  |= (1<<17))
+#define USART3_PCLK_EN()                                        ((RCC->RCC_APB1ENR)  |= (1<<18))
+#define UART4_PCLK_EN()                                         ((RCC->RCC_APB1ENR)  |= (1<<19))
+#define UART5_PCLK_EN()                                         ((RCC->RCC_APB1ENR)  |= (1<<20))
+
+//SPI peripheral clock disable
+
+#define UART1_PCLK_DI()                                         ((RCC->RCC_APB2ENR)  &= ~(1<<4))
+#define USART6_PCLK_DI()                                        ((RCC->RCC_APB2ENR)  &= ~(1<<5))
+
+#define USART2_PCLK_DI()                                        ((RCC->RCC_APB1ENR)  &= ~(1<<17))
+#define USART3_PCLK_DI()                                        ((RCC->RCC_APB1ENR)  &= ~(1<<18))
+#define UART4_PCLK_DI()                                         ((RCC->RCC_APB1ENR)  &= ~(1<<19))
+#define UART5_PCLK_DI()                                         ((RCC->RCC_APB1ENR)  &= ~(1<<20))
+
+   
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
